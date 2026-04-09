@@ -369,8 +369,10 @@ def parse(
             logger.debug(
                 "Assuming input float/int is in nanoseconds, converting to seconds."
             )
-        # need to use utcfromtimestamp to avoid local time zone issues
-        t_min_max, stamp = _check_timestamp(pd.Timestamp.utcfromtimestamp(dt_str))
+        # Use explicit UTC conversion to avoid local timezone issues.
+        t_min_max, stamp = _check_timestamp(
+            pd.Timestamp.fromtimestamp(dt_str, tz="UTC")
+        )
 
     elif hasattr(dt_str, "isoformat"):
         try:
@@ -1052,7 +1054,7 @@ class MTime(BaseModel):
         MTime
             The current time as an MTime object.
         """
-        self.time_stamp = pd.Timestamp.utcnow()
+        self.time_stamp = pd.Timestamp.now(tz="UTC")
 
         return self
 
