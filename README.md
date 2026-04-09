@@ -1,4 +1,4 @@
-# mt_metadata version 1.0.6
+# mt_metadata version 1.0.8
  Standard MT metadata
 
 [![PyPi version](https://img.shields.io/pypi/v/mt_metadata.svg)](https://pypi.python.org/pypi/mt-metadata)
@@ -28,7 +28,7 @@ MT Metadata is a project led by [IRIS-PASSCAL MT Software working group](https:/
 
 Most people will be using the transfer functions, but a lot of that metadata comes from the time series metadata.  This module supports both and has tried to make them more or less seamless to reduce complication.
 
-* **Version**: 1.0.6
+* **Version**: 1.0.8
 * **Free software**: MIT license
 * **Documentation**: https://mt-metadata.readthedocs.io.
 * **Examples**: Click the `Binder` badge above and Jupyter Notebook examples are in **mt_metadata/examples/notebooks** and **docs/source/notebooks**
