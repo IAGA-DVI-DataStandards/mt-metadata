@@ -21,7 +21,6 @@ from dateutil.parser import parse as dtparser
 from loguru import logger
 from pandas._libs.tslibs import OutOfBoundsDatetime
 
-
 try:
     from obspy.core.utcdatetime import UTCDateTime  # for type hinting
 
@@ -38,7 +37,6 @@ from pydantic import (
     PrivateAttr,
     ValidationInfo,
 )
-
 
 # =============================================================================
 #  Get leap seconds
