@@ -3,20 +3,20 @@
     "name": "mt-metadata",
     "organization": "U.S. Geological Survey",
     "description": "A Python module to handle/validate/read/write metadata in general but mainly for magnetotelluric data including time series, transfer functions, and Fourier coefficients. Formats include JSON, XML, text files.",
-    "version": "v1.0.8",
+    "version": "v1.0.9",
     "status": "Production",
     "permissions": {
       "usageType": "openSource",
       "licenses": [
         {
           "name": "MIT",
-          "URL": "https://code.usgs.gov/gmeg/mt-metadata/-/raw/v1.0.8/LICENSE.md"
+          "URL": "https://code.usgs.gov/gmeg/mt-metadata/-/raw/v1.0.9/LICENSE.md"
         }
       ]
     },
     "homepageURL": "https://code.usgs.gov/gmeg/mt_metadata",
-    "downloadURL": "https://code.usgs.gov/gmeg/mt-metadata/-/archive/v1.0.8/mt-metadata-v1.0.8.zip",
-    "disclaimerURL": "https://code.usgs.gov/gmeg/mt-metadata/-/raw/v1.0.8/DISCLAIMER.md",
+    "downloadURL": "https://code.usgs.gov/gmeg/mt-metadata/-/archive/v1.0.9/mt-metadata-v1.0.9.zip",
+    "disclaimerURL": "https://code.usgs.gov/gmeg/mt-metadata/-/raw/v1.0.9/DISCLAIMER.md",
     "repositoryURL": "https://code.usgs.gov/gmeg/mt_metadata.git",
     "tags": [
       "magnetotellurics",
