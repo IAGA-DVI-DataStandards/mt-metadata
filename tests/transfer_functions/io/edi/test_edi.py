@@ -11,9 +11,11 @@ import numpy as np
 #
 # =============================================================================
 import pytest
+from pydantic import HttpUrl
 
 from mt_metadata.transfer_functions.io.edi import EDI
 from mt_metadata.transfer_functions.io.edi.metadata import EMeasurement, HMeasurement
+from mt_metadata.utils.validators import validate_doi
 
 
 # =============================================================================
@@ -162,6 +164,42 @@ class TestAssertDescendingFrequency:
         assert np.allclose(
             expected_array, actual_array
         ), f"{array_type} array not properly reversed"
+
+
+class TestSurveyMetadataDoiHandling:
+    """Test mapping survey DOI keys to DOI or URL fields."""
+
+    @pytest.mark.parametrize(
+        "value, expected_field",
+        [
+            ("https://doi.org/10.1234/test", "citation_dataset.doi"),
+            ("10.1234/test", "citation_dataset.doi"),
+            ("doi:10.1234/test", "citation_dataset.doi"),
+            ("https://example.com/dataset", "citation_dataset.url"),
+            (HttpUrl("https://doi.org/10.1234/test"), "citation_dataset.doi"),
+            (HttpUrl("https://example.com/dataset"), "citation_dataset.url"),
+        ],
+    )
+    def test_survey_doi_values_map_to_expected_field(self, value, expected_field):
+        edi = EDI()
+        edi.Info.info_dict["survey.citation_dataset.doi"] = value
+
+        survey_metadata = edi.survey_metadata
+        actual_value = survey_metadata.get_attr_from_name(expected_field)
+
+        if expected_field.endswith("doi"):
+            assert actual_value.unicode_string() == validate_doi(value).unicode_string()
+        elif isinstance(value, HttpUrl):
+            assert actual_value.unicode_string() == value.unicode_string()
+        else:
+            assert actual_value == value
+
+        other_field = (
+            "citation_dataset.url"
+            if expected_field.endswith("doi")
+            else "citation_dataset.doi"
+        )
+        assert survey_metadata.get_attr_from_name(other_field) in [None, "None"]
 
 
 # =============================================================================

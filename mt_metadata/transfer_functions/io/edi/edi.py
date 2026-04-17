@@ -20,6 +20,7 @@ from typing import Literal
 
 import numpy as np
 from loguru import logger
+from pydantic import HttpUrl
 
 from mt_metadata import __version__, NULL_VALUES
 from mt_metadata.timeseries import Electric, Magnetic, Run, Survey
@@ -36,7 +37,7 @@ from mt_metadata.transfer_functions.io.tools import (
     get_nm_elev,
     index_locator,
 )
-from mt_metadata.utils.validators import validate_station_name
+from mt_metadata.utils.validators import validate_doi, validate_station_name
 
 
 # ==============================================================================
@@ -993,9 +994,9 @@ class EDI:
                 key = "extra"
             key = key.lower()
             if key.startswith("survey."):
-                if "doi" in key:
-                    if "doi" not in value:
-                        key = key.replace("doi", "url")
+                if "doi" in key and not self._is_doi_value(value):
+                    key = key.replace("doi", "url")
+
                 try:
                     sm.update_attribute(key.split("survey.")[1], value)
                 except Exception as error:
@@ -1006,6 +1007,17 @@ class EDI:
         sm.add_station(self.station_metadata)
 
         return sm
+
+    @staticmethod
+    def _is_doi_value(value: str | HttpUrl | object) -> bool:
+        """Return True when the value can be validated as a DOI."""
+        if not isinstance(value, (str, HttpUrl)):
+            return False
+
+        try:
+            return validate_doi(value) is not None
+        except (TypeError, ValueError):
+            return False
 
     @survey_metadata.setter
     def survey_metadata(self, survey: Survey) -> None:
@@ -1109,9 +1121,9 @@ class EDI:
                             sm.transfer_function.remote_references.append(value)
                         elif key in ["remote_references.geographic_name"]:
                             try:
-                                sm.transfer_function.remote_references[-1] = (
-                                    f"{value}.{sm.transfer_function.remote_references[-1]}"
-                                )
+                                sm.transfer_function.remote_references[
+                                    -1
+                                ] = f"{value}.{sm.transfer_function.remote_references[-1]}"
                             except IndexError:
                                 sm.transfer_function.remote_references.append(value)
                         else:
@@ -1290,9 +1302,9 @@ class EDI:
                     if ch_key not in self._channel_skip_list:
                         if ch_value in NULL_VALUES:
                             continue
-                        self.Info.info_dict[f"{run.id}.{ch.component}.{ch_key}"] = (
-                            ch_value
-                        )
+                        self.Info.info_dict[
+                            f"{run.id}.{ch.component}.{ch_key}"
+                        ] = ch_value
                 # write station information
                 self.Measurement.from_metadata(ch)
                 # add channel id to data section
