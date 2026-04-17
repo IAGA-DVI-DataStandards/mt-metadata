@@ -1121,9 +1121,9 @@ class EDI:
                             sm.transfer_function.remote_references.append(value)
                         elif key in ["remote_references.geographic_name"]:
                             try:
-                                sm.transfer_function.remote_references[
-                                    -1
-                                ] = f"{value}.{sm.transfer_function.remote_references[-1]}"
+                                sm.transfer_function.remote_references[-1] = (
+                                    f"{value}.{sm.transfer_function.remote_references[-1]}"
+                                )
                             except IndexError:
                                 sm.transfer_function.remote_references.append(value)
                         else:
@@ -1302,9 +1302,9 @@ class EDI:
                     if ch_key not in self._channel_skip_list:
                         if ch_value in NULL_VALUES:
                             continue
-                        self.Info.info_dict[
-                            f"{run.id}.{ch.component}.{ch_key}"
-                        ] = ch_value
+                        self.Info.info_dict[f"{run.id}.{ch.component}.{ch_key}"] = (
+                            ch_value
+                        )
                 # write station information
                 self.Measurement.from_metadata(ch)
                 # add channel id to data section
