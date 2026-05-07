@@ -3,11 +3,13 @@
 # =====================================================
 from typing import Annotated
 
+import numpy as np
 from pydantic import Field, field_validator
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common.enumerations import ArrayDTypeEnum
 from mt_metadata.common.units import get_unit_object
+
 
 # =====================================================
 
@@ -56,7 +58,7 @@ class StatisticalEstimate(MetadataBase):
     ]
 
     input_channels: Annotated[
-        list[str] | str,
+        list[str] | str | np.ndarray,
         Field(
             default=[],
             description="List of input channels (sources)",
@@ -70,7 +72,7 @@ class StatisticalEstimate(MetadataBase):
     ]
 
     output_channels: Annotated[
-        list[str] | str,
+        list[str] | str | np.ndarray,
         Field(
             default=[],
             description="List of output channels (response).",
@@ -112,10 +114,12 @@ class StatisticalEstimate(MetadataBase):
 
     @field_validator("input_channels", "output_channels", mode="before")
     @classmethod
-    def validate_channels(cls, value: list[str] | str) -> list[str]:
+    def validate_channels(cls, value: list[str] | str | np.ndarray) -> list[str]:
         """convert channels to a list of single channels"""
         if isinstance(value, str):
             value = [v.strip() for v in value.split(",")]
+        elif isinstance(value, np.ndarray):
+            value = value.tolist()
         elif not isinstance(value, list):
             raise TypeError(
                 f"Input channels must be a list of channels, not {type(value)}."
