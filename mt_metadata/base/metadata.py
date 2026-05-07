@@ -43,6 +43,7 @@ from mt_metadata.utils.validators import validate_attribute, validate_name
 
 from . import helpers, pydantic_helpers
 
+
 # =============================================================================
 #  Base class that everything else will inherit
 # =============================================================================
@@ -1213,7 +1214,17 @@ class MetadataBase(DotNotationBaseModel):
             if skip_none:
                 if value in NULL_VALUES:
                     continue
-            self.update_attribute(name, value)
+            if value is None:
+                try:
+                    self.update_attribute(name, value)
+                except Exception:
+                    logger.debug(
+                        f"Skipping attribute '{name}' because None is not valid "
+                        f"for this field; keeping existing value."
+                    )
+                    continue
+            else:
+                self.update_attribute(name, value)
 
     def to_json(
         self, nested: bool = False, indent: str = " " * 4, required: bool = True
