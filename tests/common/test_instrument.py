@@ -83,3 +83,12 @@ def test_instrument_alias_validation():
     instrument = Instrument(serial="mt03")
 
     assert instrument.id == "mt03"
+
+
+def test_instrument_manufacturer_alias_validation():
+    """
+    Test the alias validation for the manufacturer field.
+    """
+    instrument = Instrument(make="MT Gurus")
+
+    assert instrument.manufacturer == "MT Gurus"

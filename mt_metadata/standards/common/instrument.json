@@ -19,7 +19,9 @@
             "title": "manufacturer",
             "examples": "mt gurus",
             "type": "string",
-            "alias": null,
+            "alias": [
+                "make"
+            ],
             "units": null
         },
         "type": {

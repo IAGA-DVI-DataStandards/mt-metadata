@@ -1,4 +1,4 @@
-name: mt_metadata-docs
+name: mt-metadata-docs
 channels:
   # Don't change to pkgs/main, as it causes random timeouts in readthedocs
   - conda-forge
