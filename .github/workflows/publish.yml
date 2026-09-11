@@ -1,9 +1,19 @@
 name: Publish to PyPI
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      publish_to_pypi:
+        description: "Publish to PyPI after successful TestPyPI publish"
+        required: true
+        type: boolean
+        default: false
+
+      version:
+        description: "Optional version override (leave empty to read from bump-my-version)"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -12,6 +22,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -24,7 +35,25 @@ jobs:
           python-version: "3.13"
 
       - name: Install tools
-        run: pip install build
+        run: pip install bump-my-version build
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION=$(bump-my-version show current_version)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          generate_release_notes: false
 
       - name: Build package
         run: python -m build
@@ -37,6 +66,7 @@ jobs:
           attestations: false
 
       - name: Publish to PyPI
+        if: inputs.publish_to_pypi && steps.test-pypi.outcome == 'success'
         uses: pypa/gh-action-pypi-publish@v1.13.0
         with:
           skip-existing: true
