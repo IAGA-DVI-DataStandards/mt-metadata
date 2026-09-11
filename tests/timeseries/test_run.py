@@ -219,6 +219,11 @@ def test_add_channel(run_object, subtests):
         assert "temperature" in run_object.channels_recorded_all
         assert "temperature" in run_object.channels.keys()
 
+    with subtests.test("Add channel from dict magnetic"):
+        run_object.add_channel({"type": None, "component": "hy"})
+        assert isinstance(run_object.channels["hy"], Magnetic)
+        assert "hy" in run_object.channels_recorded_magnetic
+
 
 def test_remove_channel(populated_run, subtests):
     """Test removing channels from the Run object."""

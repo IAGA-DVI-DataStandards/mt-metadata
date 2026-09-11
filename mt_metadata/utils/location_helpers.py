@@ -1,8 +1,11 @@
 # ===============================================================
 # imports
 # ===============================================================
+from functools import lru_cache
+
 import numpy as np
 from loguru import logger
+from pyproj import CRS
 
 # ===============================================================
 
@@ -192,3 +195,51 @@ def validate_position(value: str | float, position_type: str) -> float:
     if not (abs(value) <= 180) and position_type in ["longitude", "lon"]:
         raise ValueError("longitude must be between -180 and 180 degrees")
     return value
+
+
+@lru_cache(maxsize=None)
+def _crs_name(value: str | int) -> str:
+    """
+    Get the name of the CRS a datum describes, keeping the CRS built for each
+    datum so the same one is not built over and over.
+
+    Parameters
+    ----------
+    value : str | int
+        The datum value to look up.
+
+    Returns
+    -------
+    str
+        The name of the CRS.
+    """
+    return CRS.from_user_input(value).name
+
+
+def validate_datum(value: str | int) -> str:
+    """
+    Validate the datum value and convert it to the name of the CRS.
+
+    Parameters
+    ----------
+    value : str | int
+        The datum value to validate.
+
+    Returns
+    -------
+    str
+        The name of the CRS the datum describes.
+
+    Raises
+    ------
+    ValueError
+        If the value is not a valid CRS string or identifier.
+    """
+    try:
+        if isinstance(value, (str, int)):
+            return _crs_name(value)
+        return CRS.from_user_input(value).name
+    except Exception:
+        raise ValueError(
+            f"Invalid datum value: {value}. Must be a valid CRS string or identifier."
+        )

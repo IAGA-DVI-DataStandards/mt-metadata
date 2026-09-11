@@ -532,6 +532,24 @@ class TestMetadataBaseFieldManagement:
         new_instance = new_model_class()
         assert hasattr(new_instance, "new_attribute")
 
+    def test_add_new_field_same_class(self, test_model):
+        """Test add_new_field returns the same class for the same field"""
+
+        def make_field():
+            return FieldInfo(
+                annotation=str,
+                default="new_default",
+                description="New field description",
+                json_schema_extra={"units": "meters"},
+            )
+
+        first = test_model.add_new_field("new_attribute", make_field())
+        second = test_model.add_new_field("new_attribute", make_field())
+
+        assert first is second
+        assert issubclass(first, type(test_model))
+        assert first().new_attribute == "new_default"
+
 
 class TestMetadataBaseDictConversion:
     """Test MetadataBase dictionary conversion functionality"""

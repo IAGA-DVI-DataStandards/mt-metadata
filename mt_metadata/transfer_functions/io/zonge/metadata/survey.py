@@ -5,10 +5,10 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import Field, field_validator
-from pyproj import CRS
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common.enumerations import DataTypeEnum
+from mt_metadata.utils.location_helpers import validate_datum
 
 # =====================================================
 
@@ -99,10 +99,4 @@ class Survey(MetadataBase):
         """
         Validate the datum value and convert it to the appropriate enum type.
         """
-        try:
-            datum_crs = CRS.from_user_input(value)
-            return datum_crs.name
-        except Exception:
-            raise ValueError(
-                f"Invalid datum value: {value}. Must be a valid CRS string or identifier."
-            )
+        return validate_datum(value)

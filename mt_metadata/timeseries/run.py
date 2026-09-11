@@ -1074,7 +1074,7 @@ class Run(MetadataBase):
                 if ch_type.lower().startswith("e"):
                     return Electric(**channel_obj)
                 elif (
-                    ch_type.lower().startswith("b")
+                    ch_type.lower().startswith("h")
                     or ch_type.lower().startswith("b")
                     or ch_type.lower() in ["magnetic"]
                 ):

@@ -297,7 +297,8 @@ class ListDict:
         """
 
         if key in self.keys():
-            return dict([self._home.popitem(key)])
+            # popitem takes a last flag, not a key
+            return {key: self._home.pop(key)}
         else:
             raise KeyError(f"{key} is not in ListDict keys.")
 
