@@ -86,9 +86,14 @@ def _hashable(value: Any) -> Any:
     if isinstance(value, Mapping):
         return ("map", tuple(sorted((k, _hashable(v)) for k, v in value.items())))
     if isinstance(value, (list, tuple, set, frozenset)):
-        return (type(value).__name__, tuple(sorted(map(repr, value)))
+        return (
+            type(value).__name__,
+            (
+                tuple(sorted(map(repr, value)))
                 if isinstance(value, (set, frozenset))
-                else tuple(_hashable(v) for v in value))
+                else tuple(_hashable(v) for v in value)
+            ),
+        )
     hash(value)
     return (type(value).__module__, type(value).__qualname__, value, repr(value))
 
