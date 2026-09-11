@@ -1,5 +1,8 @@
+from unittest.mock import patch
+
 import pytest
 from pydantic import ValidationError
+from pyproj import CRS
 
 from mt_metadata.common import BasicLocation, Location, StationLocation
 
@@ -275,6 +278,22 @@ def test_location_invalid_datum(subtests):
     with subtests.test("invalid datum raises ValidationError"):
         with pytest.raises(ValidationError):
             Location(datum="INVALID_DATUM")  # Datum must be a valid DatumEnum value
+
+
+def test_location_datum_crs_reused(subtests):
+    """
+    Test the Location model does not rebuild a CRS for a datum it has seen.
+    """
+    Location(datum="NAD27")
+
+    with patch.object(CRS, "from_user_input", wraps=CRS.from_user_input) as mock_crs:
+        datums = [Location(datum="NAD27").datum for _ in range(5)]
+
+    with subtests.test("datum is normalized on every call"):
+        assert datums == ["NAD27"] * 5
+
+    with subtests.test("CRS is not built again"):
+        assert mock_crs.call_count == 0
 
 
 def test_location_partial_values(subtests):

@@ -11,6 +11,7 @@ Created on Wed Dec 23 20:41:16 2020
 
 from __future__ import annotations
 
+import copy
 import json
 from collections import OrderedDict
 from enum import Enum
@@ -20,6 +21,7 @@ from enum import Enum
 # =============================================================================
 from operator import itemgetter
 from pathlib import Path
+from threading import RLock
 from typing import Any, Mapping
 from xml.etree import cElementTree as et
 
@@ -42,6 +44,112 @@ from mt_metadata.utils.exceptions import MTSchemaError
 from mt_metadata.utils.validators import validate_attribute, validate_name
 
 from . import helpers, pydantic_helpers
+
+# =============================================================================
+#  Classes built by add_new_field, keyed by the class, name and field asked for
+# =============================================================================
+
+_NEW_FIELD_CACHE: dict[tuple, type[BaseModel]] = {}
+_NEW_FIELD_LOCK = RLock()
+
+
+def clear_new_field_cache() -> None:
+    """Empty the cache of classes built by add_new_field."""
+    with _NEW_FIELD_LOCK:
+        _NEW_FIELD_CACHE.clear()
+
+
+def _hashable(value: Any) -> Any:
+    """
+    Convert a value into something hashable, raising TypeError if it cannot be.
+
+    The value's type is part of the result, so values that compare equal
+    across types (1, 1.0, True), signed zeros, and equal-content containers
+    of different kinds do not share a key.
+
+    Parameters
+    ----------
+    value : Any
+        The value to convert.
+
+    Returns
+    -------
+    Any
+        A hashable version of the value.
+
+    Raises
+    ------
+    TypeError
+        If the value cannot be represented as a hashable object.
+    """
+
+    if isinstance(value, Mapping):
+        return ("map", tuple(sorted((k, _hashable(v)) for k, v in value.items())))
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return (type(value).__name__, tuple(sorted(map(repr, value)))
+                if isinstance(value, (set, frozenset))
+                else tuple(_hashable(v) for v in value))
+    hash(value)
+    return (type(value).__module__, type(value).__qualname__, value, repr(value))
+
+
+def _new_field_key(cls: type, name: str, new_field_info: FieldInfo) -> tuple | None:
+    """
+    Build a cache key for a class with a new field added to it.
+
+    Parameters
+    ----------
+    cls : type
+        The class the field is added to.
+    name : str
+        Name of the new attribute.
+    new_field_info : FieldInfo
+        Information about the new attribute.
+
+    Returns
+    -------
+    tuple | None
+        The cache key, None if the field cannot be described by one.
+    """
+
+    try:
+        return (
+            cls,
+            name,
+            _hashable(
+                [
+                    getattr(new_field_info, attr, None)
+                    for attr in [
+                        "annotation",
+                        "default",
+                        "default_factory",
+                        "alias",
+                        "validation_alias",
+                        "serialization_alias",
+                        "title",
+                        "description",
+                        "examples",
+                        "exclude",
+                        "discriminator",
+                        "json_schema_extra",
+                        "frozen",
+                        "validate_default",
+                        "repr",
+                        "init",
+                        "init_var",
+                        "kw_only",
+                        "metadata",
+                        "deprecated",
+                        "alias_priority",
+                        "field_title_generator",
+                    ]
+                ]
+            ),
+        )
+    except TypeError:
+        logger.debug(f"Cannot cache the class for new field {name}")
+        return None
+
 
 # =============================================================================
 #  Base class that everything else will inherit
@@ -183,7 +291,6 @@ class DotNotationBaseModel(BaseModel):
             current = getattr(current, part)
 
         # Set the final attribute
-        setattr(current, parts[-1], attr_value)
         setattr(current, parts[-1], attr_value)
 
 
@@ -943,15 +1050,31 @@ class MetadataBase(DotNotationBaseModel):
         new_basemodel_object = new_basemodel()
 
         """
+        key = _new_field_key(self.__class__, name, new_field_info)
+        if key is not None:
+            with _NEW_FIELD_LOCK:
+                cached = _NEW_FIELD_CACHE.get(key)
+            if cached is not None:
+                return cached
+            # the built class holds this FieldInfo; a copy keeps a later
+            # mutation by the caller out of the cached class
+            new_field_info = copy.deepcopy(new_field_info)
+
         existing_model_fields = self.__pydantic_fields__.copy()
         existing_model_fields[name] = new_field_info
         all_fields = {k: (v.annotation, v) for k, v in existing_model_fields.items()}
 
-        return create_model(  # type: ignore
+        new_model = create_model(  # type: ignore
             self.__class__.__name__,  # Preserve the original class name
             __base__=self.__class__,  # Preserve the original class hierarchy
             **all_fields,
         )
+
+        if key is not None:
+            with _NEW_FIELD_LOCK:
+                _NEW_FIELD_CACHE[key] = new_model
+
+        return new_model
 
     def to_dict(
         self, nested: bool = False, single: bool = False, required: bool = True

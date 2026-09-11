@@ -6,7 +6,6 @@ from typing import Annotated
 
 from loguru import logger
 from pydantic import computed_field, Field, field_validator, ValidationInfo
-from pyproj import CRS
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common import (
@@ -28,6 +27,7 @@ from mt_metadata.timeseries.filters import (
     PoleZeroFilter,
     TimeDelayFilter,
 )
+from mt_metadata.utils.location_helpers import validate_datum
 
 # =====================================================
 
@@ -345,13 +345,7 @@ class Survey(MetadataBase):
         """
         Validate the datum value and convert it to the appropriate enum type.
         """
-        try:
-            datum_crs = CRS.from_user_input(value)
-            return datum_crs.name
-        except Exception:
-            raise ValueError(
-                f"Invalid datum value: {value}. Must be a valid CRS string or identifier."
-            )
+        return validate_datum(value)
 
     @field_validator("release_license", mode="before")
     @classmethod

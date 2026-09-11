@@ -18,7 +18,16 @@ from urllib.error import URLError
 import numpy as np
 import pytest
 
-from mt_metadata.transfer_functions.io.tools import get_nm_elev
+from mt_metadata.transfer_functions.io.tools import (
+    _request_nm_elev,
+    get_nm_elev,
+)
+
+
+@pytest.fixture(autouse=True)
+def clear_elevation_cache():
+    """Each test gets an empty request cache."""
+    _request_nm_elev.cache_clear()
 
 
 # ==============================================================================
@@ -130,24 +139,26 @@ class TestGetNMElevation:
                 )
 
     @pytest.mark.parametrize(
-        "lat,lon",
+        "lat,lon,queried",
         [
-            (40.0, -120.0),
-            (35.467, -115.3355),
-            (0.0, 0.0),
-            (-90.0, 180.0),
-            (90.0, -180.0),
+            (40.0, -120.0, True),
+            (35.467, -115.3355, True),
+            (0.0, 0.0, False),
+            (-90.0, 180.0, False),
+            (90.0, -180.0, False),
         ],
     )
-    def test_coordinate_range_acceptance(self, lat, lon):
-        """Test that function accepts various coordinate ranges."""
+    def test_coordinate_range_acceptance(self, lat, lon, queried):
+        """Coordinates outside the US National Map return 0 without a request."""
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.read.return_value = json.dumps(
                 {"value": "100.0"}
             ).encode()
             result = get_nm_elev(lat, lon)
             assert isinstance(result, (int, float))
-            assert mock_urlopen.called
+            assert mock_urlopen.called is queried
+            if not queried:
+                assert result == 0.0
 
     def test_successful_elevation_retrieval(self, mock_successful_response):
         """Test successful elevation retrieval from API."""
@@ -159,7 +170,7 @@ class TestGetNMElevation:
     def test_zero_elevation_retrieval(self, mock_zero_response):
         """Test retrieval of zero elevation (ocean/invalid coordinates)."""
         with patch("urllib.request.urlopen", return_value=mock_zero_response):
-            elevation = get_nm_elev(0.0, 0.0)
+            elevation = get_nm_elev(36.0, -122.5)
             assert elevation == 0.0
             assert isinstance(elevation, float)
 
@@ -358,7 +369,7 @@ class TestGetNMElevationEdgeCases:
             assert mock_urlopen.called
 
     def test_boundary_coordinates(self):
-        """Test coordinates at valid boundaries."""
+        """Coordinates at the valid boundaries sit outside the footprint."""
         boundary_coords = [
             (90.0, 0.0),  # North Pole
             (-90.0, 0.0),  # South Pole
@@ -368,12 +379,9 @@ class TestGetNMElevationEdgeCases:
 
         for lat, lon in boundary_coords:
             with patch("urllib.request.urlopen") as mock_urlopen:
-                mock_urlopen.return_value.read.return_value = json.dumps(
-                    {"value": "0"}
-                ).encode()
                 elevation = get_nm_elev(lat, lon)
-                assert isinstance(elevation, (int, float))
-                assert mock_urlopen.called
+                assert elevation == 0.0
+                assert not mock_urlopen.called
 
     def test_api_timeout_handling(self):
         """Test handling of API timeouts."""

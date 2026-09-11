@@ -9,8 +9,10 @@ Created on Wed Dec 23 20:37:52 2020
 
 """
 
+import copy
 import json
 import logging
+import re
 
 # =============================================================================
 # Imports
@@ -873,15 +875,32 @@ def element_to_dict(element):
     return OrderedDict(sorted(meta_dict.items(), key=itemgetter(0)))
 
 
+# comments, processing instructions, carriage returns, tabs and control
+# characters serialize differently between the two paths below
+_MINIDOM_ONLY = re.compile("<!--|<\\?|[\r\t\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
 def element_to_string(element):
-    return (
-        minidom.parseString(et.tostring(element).decode())
-        .toprettyxml(
-            indent="    ",
-            encoding="UTF-8",
+    """
+    Serialize an element pretty-printed.
+
+    Indents in place instead of round-tripping the document through minidom,
+    which parses and serializes it a second time. Trees the minidom path
+    treated differently are still sent through it.
+    """
+    raw = et.tostring(element, encoding="unicode")
+    if _MINIDOM_ONLY.search(raw):
+        return (
+            minidom.parseString(raw)
+            .toprettyxml(indent="    ", encoding="UTF-8")
+            .decode()
         )
-        .decode()
-    )
+    element = copy.deepcopy(element)
+    et.indent(element, space="    ")
+    # ElementTree closes an empty tag as "<tag />", minidom as "<tag/>";
+    # ">" is escaped in text and attributes, so only tag closes can match
+    text = et.tostring(element, encoding="unicode").replace(" />", "/>")
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + text + "\n"
 
 
 # =============================================================================

@@ -46,6 +46,7 @@ import hashlib
 import json
 import os
 import sys
+import weakref
 from pathlib import Path
 from threading import RLock
 from typing import Annotated, Any, Dict, get_args, get_origin, Literal, Union
@@ -70,8 +71,11 @@ APP_NAME = "mt_metadata"
 # Treat these BaseModel names as simple fields (no expansion)
 SPECIAL_CASE_MODEL_NAMES = {"MTime"}
 
-# Thread-safe in-memory cache of computed field trees (per class)
-_FIELDS_TREE_CACHE: Dict[type[BaseModel], Dict[str, Any]] = {}
+# Thread-safe in-memory cache of computed field trees (per class), weakly keyed
+# so a class built at run time is not kept alive by the cache
+_FIELDS_TREE_CACHE: weakref.WeakKeyDictionary[type[BaseModel], Dict[str, Any]] = (
+    weakref.WeakKeyDictionary()
+)
 _CACHE_LOCK = RLock()
 
 # Environment flag to disable disk caching (e.g., for tests)

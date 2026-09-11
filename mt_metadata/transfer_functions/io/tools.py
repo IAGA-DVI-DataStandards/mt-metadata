@@ -11,6 +11,7 @@ import json
 # imports
 # =============================================================================
 import urllib.request as url_request
+from functools import lru_cache
 
 from loguru import logger
 
@@ -193,19 +194,28 @@ def get_nm_elev(latitude, longitude):
     .. note:: Needs an internet connection to work.
 
     """
-    # nm_url = (
-    #     r"https://nationalmap.gov/epqs/pqs.php?"
-    #     f"x={longitude:.5f}&y={latitude:.5f}&units=Meters&output=xml"
-    # )
+    # the service only holds the US 3DEP model, so a point outside its
+    # footprint is a wasted round trip
+    if not (17.0 <= latitude <= 72.0 and (longitude <= -65.0 or longitude >= 172.0)):
+        logger.debug(
+            f"({latitude}, {longitude}) is outside the US National Map, "
+            "skipping elevation request."
+        )
+        return 0.0
+    return _request_nm_elev(round(latitude, 5), round(longitude, 5))
 
+
+@lru_cache(maxsize=256)
+def _request_nm_elev(latitude, longitude):
+    """Query the national map for one point, cached per rounded coordinate."""
     nm_url = (
         r"https://epqs.nationalmap.gov/v1/json?"
         f"x={longitude}&y={latitude}&units=Meters&wkid=4326&includeDate=False"
     )
     # call the url and get the response
     try:
-        response = url_request.urlopen(nm_url)
-    except:
+        response = url_request.urlopen(nm_url, timeout=5)
+    except Exception:
         logger.error("Could not connect to internet to get elevation data.")
         return 0.0
 
