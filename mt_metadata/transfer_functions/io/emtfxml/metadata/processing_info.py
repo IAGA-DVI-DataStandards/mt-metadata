@@ -134,7 +134,7 @@ class ProcessingInfo(MetadataBase):
     def validate_process_date(
         cls, field_value: MTime | float | int | np.datetime64 | pd.Timestamp | str
     ):
-        return MTime(time_stamp=field_value)
+        return MTime(time_stamp=field_value).date
 
     def read_dict(self, input_dict: dict) -> None:
         """

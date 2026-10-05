@@ -35,8 +35,8 @@ class ProcessingSoftware(Software):
         cls, field_value: MTime | float | int | np.datetime64 | pd.Timestamp | str
     ):
         if isinstance(field_value, MTime):
-            return field_value
-        return MTime(time_stamp=field_value)
+            return field_value.date
+        return MTime(time_stamp=field_value).date
 
     def read_dict(self, input_dict: dict) -> None:
         """
