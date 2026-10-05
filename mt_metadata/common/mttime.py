@@ -60,7 +60,7 @@ leap_second_dict = {
     15: {"min": datetime.date(2009, 1, 1), "max": datetime.date(2012, 6, 30)},
     16: {"min": datetime.date(2012, 7, 1), "max": datetime.date(2015, 7, 1)},
     17: {"min": datetime.date(2015, 7, 1), "max": datetime.date(2016, 12, 31)},
-    18: {"min": datetime.date(2017, 1, 1), "max": datetime.date(2026, 7, 1)},
+    18: {"min": datetime.date(2017, 1, 1), "max": datetime.date(2026, 12, 31)},
 }
 
 
@@ -89,7 +89,7 @@ def calculate_leap_seconds(year: int, month: int, day: int) -> int:
     ------
     ValueError
         If the date is outside the defined leap second range
-        (1981-07-01 to 2026-07-01).
+        (1981-07-01 to 2026-12-31).
 
     Notes
     -----
@@ -122,6 +122,15 @@ def calculate_leap_seconds(year: int, month: int, day: int) -> int:
 
     # make the date a datetime object, easier to test
     given_date = datetime.date(int(year), int(month), int(day))
+    max_key = max(leap_second_dict.keys())
+    # check to see if the given date is after the last known leap second change
+    # if it is return the last known leap second value.
+    if given_date > leap_second_dict[max_key]["max"]:
+        logger.info(
+            f"Date of {given_date} is after the last date for estimating leap seconds ({leap_second_dict[max_key]["max"]}). "
+            f"Returning value of {max_key} leap seconds."
+        )
+        return int(max_key)
 
     # made an executive decision that the date can be equal to the min, but
     # not the max, otherwise get an error.
