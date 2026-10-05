@@ -126,8 +126,8 @@ def calculate_leap_seconds(year: int, month: int, day: int) -> int:
     # check to see if the given date is after the last known leap second change
     # if it is return the last known leap second value.
     if given_date > leap_second_dict[max_key]["max"]:
-        logger.info(
-            f"Date of {given_date} is after the last date for estimating leap seconds ({leap_second_dict[max_key]["max"]}). "
+        logger.warning(
+            f"Date of {given_date} is after the last date for estimating leap seconds ({leap_second_dict[max_key]['max']}). "
             f"Returning value of {max_key} leap seconds."
         )
         return int(max_key)
