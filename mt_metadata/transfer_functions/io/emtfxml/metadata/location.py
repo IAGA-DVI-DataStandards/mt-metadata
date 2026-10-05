@@ -41,6 +41,8 @@ class Location(BasicLocation):
         """
         if self.datum is None:
             self.datum = "WGS84"
+        else:
+            self.datum = self.datum.replace(" ", "")
         if self.declination.epoch is None:
             self.declination.epoch = "1995"
 
