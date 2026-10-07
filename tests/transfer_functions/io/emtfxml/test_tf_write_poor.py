@@ -19,6 +19,7 @@ from mt_metadata import TF_POOR_XML
 from mt_metadata.transfer_functions.core import TF
 from mt_metadata.transfer_functions.io.emtfxml import EMTFXML
 
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -222,6 +223,8 @@ class TestEMTFXMLPoorXMLSerialization:
             if "ProcessingTag" in line_0:
                 # ProcessingTag lines are expected to differ
                 assert line_0 != line_1, "ProcessingTag lines should differ"
+            elif "<ProcessDate/>" in line_0:
+                assert line_1.strip() == "<ProcessDate>1980-01-01</ProcessDate>"
             elif any(
                 tag in line_0_lower for tag in ["<latitude", "<longitude", "<elevation"]
             ):

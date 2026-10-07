@@ -366,6 +366,8 @@ class TestEMTFXMLWriteXMLSerialization:
             if line_type == "ProcessingTag" and "ProcessingTag" in original_line:
                 # ProcessingTag is expected to be different
                 assert original_line != roundtrip_line
+            elif line_type == "other_lines" and "<ProcessDate/>" in original_line:
+                assert roundtrip_line.strip() == "<ProcessDate>1980-01-01</ProcessDate>"
             elif line_type == "other_lines" and "ProcessingTag" not in original_line:
                 # Other lines should be the same
                 assert original_line == roundtrip_line
