@@ -44,7 +44,9 @@ class Location(BasicLocation):
         if self.declination.epoch is None:
             self.declination.epoch = "1995"
 
-        root = et.Element(self.__class__.__name__.capitalize(), {"datum": self.datum})
+        root = et.Element(
+            self.__class__.__name__.capitalize(), {"datum": self.datum.replace(" ", "")}
+        )
         lat = et.SubElement(root, "Latitude")
         lat.text = f"{self.latitude:.6f}"
         lon = et.SubElement(root, "Longitude")

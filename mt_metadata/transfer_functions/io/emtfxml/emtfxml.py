@@ -49,7 +49,7 @@ estimates_dict = {
         name="VAR",
         type="real",
         description="Variance",
-        external_url="http://www.iris.edu/dms/products/emtf/variance.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/variance.html",
         intention="error estimate",
         tag="variance",
     ),
@@ -57,7 +57,7 @@ estimates_dict = {
         name="COV",
         type="complex",
         description="Covariance",
-        external_url="http://www.iris.edu/dms/products/emtf/covariance.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/covariance.html",
         intention="error estimate",
         tag="covariance",
     ),
@@ -65,7 +65,7 @@ estimates_dict = {
         name="RESIDCOV",
         type="complex",
         description="Residual Covariance (N)",
-        external_url="http://www.iris.edu/dms/products/emtf/residual_covariance.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/residual_covariance.html",
         intention="error estimate",
         tag="residual_covariance",
     ),
@@ -73,7 +73,7 @@ estimates_dict = {
         name="INVSIGCOV",
         type="complex",
         description="Inverse Coherent Signal Power Matrix (S)",
-        external_url="http://www.iris.edu/dms/products/emtf/inverse_signal_covariance.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/inverse_signal_covariance.html",
         intention="signal power estimate",
         tag="inverse_signal_covariance",
     ),
@@ -81,7 +81,7 @@ estimates_dict = {
         name="COH",
         type="complex",
         description="Coherence",
-        external_url="http://www.iris.edu/dms/products/emtf/coherence.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/coherence.html",
         intention="signal coherence",
         tag="coherence",
     ),
@@ -89,7 +89,7 @@ estimates_dict = {
         name="PREDCOH",
         type="complex",
         description="Multiple Coherence",
-        external_url="http://www.iris.edu/dms/products/emtf/multiple_coherence.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/multiple_coherence.html",
         intention="signal coherence",
         tag="multiple_coherence",
     ),
@@ -97,7 +97,7 @@ estimates_dict = {
         name="SIGAMP",
         type="complex",
         description="Signal Amplitude",
-        external_url="http://www.iris.edu/dms/products/emtf/signal_amplitude.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/signal_amplitude.html",
         intention="signal power estimate",
         tag="signal_power",
     ),
@@ -105,7 +105,7 @@ estimates_dict = {
         name="SIGNOISE",
         type="complex",
         description="Signal Noise",
-        external_url="http://www.iris.edu/dms/products/emtf/signal_noise.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/signal_noise.html",
         intention="error estimate",
         tag="signal_noise",
     ),
@@ -119,7 +119,7 @@ data_types_dict = {
         input="H",
         units="milliVolt per kilometer per nanoTesla",
         description="MT impedance",
-        external_url="http://www.iris.edu/dms/products/emtf/impedance.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/impedance.html",
         intention="primary data type",
         tag="impedance",
     ),
@@ -130,7 +130,7 @@ data_types_dict = {
         input="H",
         units="",
         description="Vertical Field Transfer Functions (Tipper)",
-        external_url="http://www.iris.edu/dms/products/emtf/tipper.html",
+        external_url="http://www.earthscope.edu/dms/products/emtf/tipper.html",
         intention="primary data type",
         tag="tipper",
     ),
@@ -866,10 +866,9 @@ class EMTFXML:
         """
         self.description = sm.summary
         self.site.project = sm.project
-        if sm.geographic_name is None:
-            self.site.survey = sm.id
-        else:
-            self.site.survey = sm.geographic_name
+        self.site.survey = sm.id
+        if sm.geographic_name is not None:
+            self.site.name = sm.geographic_name
         if sm.country is not None:
             self.site.country = ",".join(sm.country)
         self.copyright.citation.survey_d_o_i = sm.citation_dataset.doi
@@ -900,12 +899,12 @@ class EMTFXML:
         s.provenance.creation_time = self.provenance.create_time
         s.provenance.creator.author = self.provenance.creator.name
         s.provenance.creator.email = self.provenance.creator.email
-        s.provenance.creator.organization = self.provenance.creator.organization
-        s.provenance.creator.url = self.provenance.creator.url
+        s.provenance.creator.organization = self.provenance.creator.org
+        s.provenance.creator.url = self.provenance.creator.org_url
         s.provenance.submitter.author = self.provenance.submitter.name
         s.provenance.submitter.email = self.provenance.submitter.email
-        s.provenance.submitter.organization = self.provenance.submitter.organization
-        s.provenance.submitter.url = self.provenance.submitter.url
+        s.provenance.submitter.organization = self.provenance.submitter.org
+        s.provenance.submitter.url = self.provenance.submitter.org_url
 
         s.provenance.archive.url = self.external_url.url
         s.provenance.archive.comments = self.external_url.description
@@ -1204,12 +1203,12 @@ class EMTFXML:
         self.provenance.create_time = sm.provenance.creation_time
         self.provenance.creator.name = sm.provenance.creator.author
         self.provenance.creator.email = sm.provenance.creator.email
-        self.provenance.creator.organization = sm.provenance.creator.organization
-        self.provenance.creator.url = sm.provenance.creator.url
+        self.provenance.creator.org = sm.provenance.creator.organization
+        self.provenance.creator.org_url = sm.provenance.creator.url
         self.provenance.submitter.name = sm.provenance.submitter.author
         self.provenance.submitter.email = sm.provenance.submitter.email
-        self.provenance.submitter.organization = sm.provenance.submitter.organization
-        self.provenance.submitter.url = sm.provenance.submitter.url
+        self.provenance.submitter.org = sm.provenance.submitter.organization
+        self.provenance.submitter.org_url = sm.provenance.submitter.url
 
         self.external_url.url = (
             sm.provenance.archive.url if sm.provenance.archive.url is not None else ""

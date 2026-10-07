@@ -11,9 +11,8 @@ from pydantic import Field, field_validator
 from mt_metadata import __version__
 from mt_metadata.base import MetadataBase
 from mt_metadata.base.helpers import dict_to_xml, element_to_string
-from mt_metadata.common import Person
 from mt_metadata.common.mttime import MTime
-from mt_metadata.transfer_functions.io.emtfxml.metadata import helpers
+from mt_metadata.transfer_functions.io.emtfxml.metadata import helpers, Person
 
 
 # =====================================================

@@ -141,7 +141,7 @@ class DataType(MetadataBase):
     units: Annotated[
         str,
         Field(
-            default="milliVolt per kilometer per nanoTesla",
+            default="[mV/km]/[nT]",
             description="Units for the data type",
             alias=None,
             json_schema_extra={
@@ -156,9 +156,13 @@ class DataType(MetadataBase):
     @classmethod
     def validate_units(cls, value: str) -> str:
         if value in [None, ""]:
-            return ""
+            return "[]"
         try:
             unit_object = get_unit_object(value)
+            if unit_object.symbol in ["unknown"]:
+                return "[]"
+            elif unit_object.symbol in ["mV/km/nT"]:
+                return "[mV/km]/[nT]"
             return unit_object.symbol
         except ValueError as error:
             raise KeyError(error)
@@ -192,14 +196,14 @@ class DataType(MetadataBase):
             required=required,
             order=["description", "external_url", "intention", "tag"],
         )
-        xml_unit = get_unit_object(self.units).symbol
+
         if not string:
             element.attrib = {
                 "name": self.name,
                 "type": self.type,
                 "output": self.output,
                 "input": self.input,
-                "units": xml_unit,
+                "units": self.units,
             }
 
         return element

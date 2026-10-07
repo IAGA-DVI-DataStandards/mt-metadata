@@ -21,6 +21,7 @@
 from .external_url import ExternalUrl
 from .primary_data import PrimaryData
 from .attachment import Attachment
+from .person import Person
 from .citation import Citation
 from .provenance import Provenance
 from .copyright import Copyright
@@ -51,11 +52,11 @@ from .period_range import PeriodRange
 from .data import TransferFunction
 from .emtf import EMTF
 
-
 __all__ = [
     "ExternalUrl",
     "PrimaryData",
     "Attachment",
+    "Person",
     "Provenance",
     "Citation",
     "Copyright",

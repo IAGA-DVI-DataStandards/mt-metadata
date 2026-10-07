@@ -130,8 +130,9 @@ class TestXMLSerialization:
         assert xml_element.tag == "Instrument"
         assert xml_element.attrib == {}  # No type attribute when type is empty
 
-        # Should have no child elements due to NULL_VALUES filtering
-        assert len(list(xml_element)) == 0
+        # Settings is required in EMTFXML even when its value is null.
+        assert [child.tag for child in xml_element] == ["settings"]
+        assert xml_element.find("settings").text is None
 
     def test_to_xml_basic_instrument(self, basic_instrument):
         """Test XML serialization of basic instrument."""
@@ -185,8 +186,8 @@ class TestXMLSerialization:
             ("id", "VALID_ID", True),
             ("id", "", False),
             ("settings", "valid settings", True),
-            ("settings", None, False),
-            ("settings", "null", False),
+            ("settings", None, True),
+            ("settings", "null", True),
         ],
     )
     def test_to_xml_null_values_filtering(
@@ -310,8 +311,9 @@ class TestEdgeCases:
 
         xml_element = empty_instrument.to_xml()
 
-        # Should have no child elements
-        assert len(list(xml_element)) == 0
+        # Settings is emitted unconditionally by the EMTFXML standard.
+        assert [child.tag for child in xml_element] == ["settings"]
+        assert xml_element.find("settings").text == "None"
         # Should have no type attribute
         assert "type" not in xml_element.attrib
 
@@ -371,7 +373,8 @@ class TestNullValuesIntegration:
             xml_element = empty_instrument.to_xml()
 
             settings_element = xml_element.find("settings")
-            assert settings_element is None
+            assert settings_element is not None
+            assert settings_element.text == null_val
 
 
 # =============================================================================

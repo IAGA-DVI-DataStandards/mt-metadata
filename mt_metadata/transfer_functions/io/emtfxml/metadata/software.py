@@ -18,7 +18,7 @@ class ProcessingSoftware(Software):
     last_mod: Annotated[
         MTime | str | float | int | np.datetime64 | pd.Timestamp | None,
         Field(
-            default_factory=lambda: MTime(time_stamp=None),
+            default_factory=lambda: MTime(time_stamp=None).date,
             description="Date the software was last modified",
             alias=None,
             json_schema_extra={
@@ -35,8 +35,8 @@ class ProcessingSoftware(Software):
         cls, field_value: MTime | float | int | np.datetime64 | pd.Timestamp | str
     ):
         if isinstance(field_value, MTime):
-            return field_value
-        return MTime(time_stamp=field_value)
+            return field_value.date
+        return MTime(time_stamp=field_value).date
 
     def read_dict(self, input_dict: dict) -> None:
         """

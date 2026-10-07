@@ -55,10 +55,12 @@ class Instrument(CommonInstrument):
         if self.type not in [None, ""]:
             root.attrib["type"] = self.type
 
-        for key in ["manufacturer", "name", "id", "settings"]:
+        for key in ["manufacturer", "name", "id"]:
             value = getattr(self, key)
             if value not in NULL_VALUES:
                 et.SubElement(root, key).text = value
+
+        et.SubElement(root, "settings").text = getattr(self, "settings")
 
         if string:
             return element_to_string(root)
