@@ -24,9 +24,9 @@ import numpy as np
 import pytest
 
 from mt_metadata import __version__
-from mt_metadata.common import Person
 from mt_metadata.common.mttime import MTime
-from mt_metadata.transfer_functions.io.emtfxml.metadata import Provenance
+from mt_metadata.transfer_functions.io.emtfxml.metadata import Person, Provenance
+
 
 # ====================================
 # Core Fixtures
@@ -53,12 +53,12 @@ def full_provenance():
     creator = Person()
     creator.name = "John Doe"
     creator.email = "john.doe@example.com"
-    creator.organization = "Test Organization"
+    creator.org = "Test Organization"
 
     submitter = Person()
     submitter.name = "Jane Smith"
     submitter.email = "jane.smith@example.com"
-    submitter.organization = "Submission Organization"
+    submitter.org = "Submission Organization"
 
     return Provenance(
         creating_application="EMTF File Conversion Utilities 4.0",
@@ -79,7 +79,7 @@ def person_factory():
         if email:
             person.email = email
         if organization:
-            person.organization = organization
+            person.org = organization
         return person
 
     return _create_person
@@ -154,10 +154,10 @@ class TestProvenanceInstantiation:
         # Default Person objects should have empty/None values
         assert default_provenance.creator.name == ""
         assert default_provenance.creator.email is None
-        assert default_provenance.creator.organization is None
+        assert default_provenance.creator.org is None
         assert default_provenance.submitter.name == ""
         assert default_provenance.submitter.email is None
-        assert default_provenance.submitter.organization is None
+        assert default_provenance.submitter.org is None
 
     def test_minimal_instantiation(self, minimal_provenance):
         """Test Provenance instantiation with minimal custom values."""
@@ -178,13 +178,13 @@ class TestProvenanceInstantiation:
         assert isinstance(full_provenance.creator, Person)
         assert full_provenance.creator.name == "John Doe"
         assert full_provenance.creator.email == "john.doe@example.com"
-        assert full_provenance.creator.organization == "Test Organization"
+        assert full_provenance.creator.org == "Test Organization"
 
         # Check submitter
         assert isinstance(full_provenance.submitter, Person)
         assert full_provenance.submitter.name == "Jane Smith"
         assert full_provenance.submitter.email == "jane.smith@example.com"
-        assert full_provenance.submitter.organization == "Submission Organization"
+        assert full_provenance.submitter.org == "Submission Organization"
 
 
 # ====================================
@@ -224,7 +224,7 @@ class TestProvenanceFieldValidation:
         assert isinstance(provenance.creator, Person)
         assert provenance.creator.name == name
         assert provenance.creator.email == email
-        assert provenance.creator.organization == organization
+        assert provenance.creator.org == organization
 
         # Test submitter
         submitter = person_factory(name, email, organization)
@@ -232,7 +232,7 @@ class TestProvenanceFieldValidation:
         assert isinstance(provenance.submitter, Person)
         assert provenance.submitter.name == name
         assert provenance.submitter.email == email
-        assert provenance.submitter.organization == organization
+        assert provenance.submitter.org == organization
 
     def test_create_time_validator_types(self):
         """Test create_time field validator with different input types."""
@@ -280,21 +280,21 @@ class TestProvenancePersonIntegration:
         # Modify creator
         provenance.creator.name = "Modified Creator"
         provenance.creator.email = "creator@modified.com"
-        provenance.creator.organization = "Modified Creator Org"
+        provenance.creator.org = "Modified Creator Org"
 
         # Modify submitter
         provenance.submitter.name = "Modified Submitter"
         provenance.submitter.email = "submitter@modified.com"
-        provenance.submitter.organization = "Modified Submitter Org"
+        provenance.submitter.org = "Modified Submitter Org"
 
         # Verify changes
         assert provenance.creator.name == "Modified Creator"
         assert provenance.creator.email == "creator@modified.com"
-        assert provenance.creator.organization == "Modified Creator Org"
+        assert provenance.creator.org == "Modified Creator Org"
 
         assert provenance.submitter.name == "Modified Submitter"
         assert provenance.submitter.email == "submitter@modified.com"
-        assert provenance.submitter.organization == "Modified Submitter Org"
+        assert provenance.submitter.org == "Modified Submitter Org"
 
     def test_person_assignment_with_objects(self, person_factory):
         """Test assigning pre-created Person objects."""
@@ -408,7 +408,7 @@ class TestProvenanceSerialization:
         # Check nested Person data
         assert "name" in prov_data["creator"]
         assert "email" in prov_data["creator"]
-        assert "organization" in prov_data["creator"]
+        assert "org" in prov_data["creator"]
 
 
 # ====================================
@@ -470,12 +470,12 @@ class TestProvenanceIntegration:
         creator = Person()
         creator.name = "Dr. Research Scientist"
         creator.email = "scientist@university.edu"
-        creator.organization = "University Research Lab"
+        creator.org = "University Research Lab"
 
         submitter = Person()
         submitter.name = "Data Manager"
         submitter.email = "manager@datacenter.org"
-        submitter.organization = "National Data Center"
+        submitter.org = "National Data Center"
 
         provenance = Provenance(
             creating_application="Research Data Processor v2.1",
@@ -562,13 +562,13 @@ class TestProvenanceEdgeCases:
 
         person.name = long_name
         person.email = long_email
-        person.organization = long_org
+        person.org = long_org
 
         provenance = Provenance(creator=person)
 
         assert provenance.creator.name == long_name
         assert provenance.creator.email == long_email
-        assert provenance.creator.organization == long_org
+        assert provenance.creator.org == long_org
 
 
 # ====================================
