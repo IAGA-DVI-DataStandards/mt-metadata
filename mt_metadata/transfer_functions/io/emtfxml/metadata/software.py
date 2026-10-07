@@ -18,7 +18,7 @@ class ProcessingSoftware(Software):
     last_mod: Annotated[
         MTime | str | float | int | np.datetime64 | pd.Timestamp | None,
         Field(
-            default_factory=lambda: MTime(time_stamp=None),
+            default_factory=lambda: MTime(time_stamp=None).date,
             description="Date the software was last modified",
             alias=None,
             json_schema_extra={

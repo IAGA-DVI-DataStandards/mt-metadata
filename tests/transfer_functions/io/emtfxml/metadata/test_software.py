@@ -26,8 +26,8 @@ IMPORTANT NOTES:
 2. String fields (name, author, version) don't accept None values due to
    Pydantic validation - they require string values (can be empty strings).
 
-3. MTime fields (last_mod, last_updated) work correctly for validation,
-   assignment, and dictionary serialization.
+3. last_mod is normalized to a date string, while inherited last_updated
+    remains an MTime.
 
 The test suite follows the same pattern as other basemodel tests in the project
 for consistency and maintainability.
@@ -42,6 +42,11 @@ import pytest
 
 from mt_metadata.common.mttime import MTime
 from mt_metadata.transfer_functions.io.emtfxml.metadata import ProcessingSoftware
+
+
+def assert_date_only_string(value):
+    assert isinstance(value, str)
+    assert datetime.date.fromisoformat(value).isoformat() == value
 
 
 # =============================================================================
@@ -129,10 +134,10 @@ class TestProcessingSoftwareInstantiation:
         assert empty_software.name == ""
         assert empty_software.author == ""
         assert empty_software.version == ""
-        assert isinstance(empty_software.last_mod, MTime)
+        assert_date_only_string(empty_software.last_mod)
+        assert empty_software.last_mod == "1980-01-01"
         assert isinstance(empty_software.last_updated, MTime)
-        # Default MTime should be the null datetime
-        assert str(empty_software.last_mod) == "1980-01-01T00:00:00+00:00"
+        # Default last_updated should be the null datetime
         assert str(empty_software.last_updated) == "1980-01-01T00:00:00+00:00"
 
     def test_basic_software_creation(self, basic_software, basic_software_data):
@@ -140,7 +145,8 @@ class TestProcessingSoftwareInstantiation:
         assert basic_software.name == basic_software_data["name"]
         assert basic_software.author == basic_software_data["author"]
         assert basic_software.version == basic_software_data["version"]
-        assert isinstance(basic_software.last_mod, MTime)
+        assert_date_only_string(basic_software.last_mod)
+        assert basic_software.last_mod == "2023-01-01"
         assert isinstance(basic_software.last_updated, MTime)
 
     def test_comprehensive_software_creation(self, comprehensive_software):
@@ -148,7 +154,8 @@ class TestProcessingSoftwareInstantiation:
         assert comprehensive_software.name == "ComprehensiveSoft"
         assert comprehensive_software.author == "Comprehensive Author"
         assert comprehensive_software.version == "2.5.1"
-        assert isinstance(comprehensive_software.last_mod, MTime)
+        assert_date_only_string(comprehensive_software.last_mod)
+        assert comprehensive_software.last_mod == "2023-06-15"
         assert isinstance(comprehensive_software.last_updated, MTime)
 
     @pytest.mark.parametrize(
@@ -182,7 +189,8 @@ class TestProcessingSoftwareInstantiation:
         assert empty_software.name == ""
         assert empty_software.author == ""
         assert empty_software.version == ""
-        assert isinstance(empty_software.last_mod, MTime)
+        assert_date_only_string(empty_software.last_mod)
+        assert empty_software.last_mod == "1980-01-01"
         assert isinstance(empty_software.last_updated, MTime)
 
     def test_mtime_field_validation(self, time_format_data):
@@ -194,7 +202,7 @@ class TestProcessingSoftwareInstantiation:
                 version="1.0",
                 last_mod=time_value,
             )
-            assert isinstance(software.last_mod, MTime)
+            assert_date_only_string(software.last_mod)
 
     def test_string_fields_validation(self, empty_software):
         """Test that string fields handle various inputs."""
@@ -392,7 +400,8 @@ class TestReadDictionary:
 
         assert empty_software.name == "TimeSoftware"
         assert empty_software.author == "Time Author"
-        assert isinstance(empty_software.last_mod, MTime)
+        assert_date_only_string(empty_software.last_mod)
+        assert empty_software.last_mod == "2023-06-15"
         assert isinstance(empty_software.last_updated, MTime)
 
     def test_read_dict_missing_processing_software_key(self, empty_software):
@@ -436,14 +445,14 @@ class TestReadDictionary:
 # =============================================================================
 # Test Class: MTime Field Testing
 # =============================================================================
-class TestMTimeFields:
-    """Test MTime field specific functionality."""
+class TestTimeFields:
+    """Test last_mod date strings and last_updated MTime behavior."""
 
     def test_last_mod_field_validation(self, time_format_data):
         """Test last_mod field with various time formats."""
         for time_key, time_value in time_format_data.items():
             software = ProcessingSoftware(name="Test", last_mod=time_value)
-            assert isinstance(software.last_mod, MTime)
+            assert_date_only_string(software.last_mod)
 
     def test_last_updated_field_validation(self, time_format_data):
         """Test last_updated field with various time formats."""
@@ -459,7 +468,7 @@ class TestMTimeFields:
             empty_software.last_mod = time_value
             empty_software.last_updated = time_value
 
-            assert isinstance(empty_software.last_mod, MTime)
+            assert_date_only_string(empty_software.last_mod)
             assert isinstance(empty_software.last_updated, MTime)
 
     def test_none_time_values(self, empty_software):
@@ -467,7 +476,8 @@ class TestMTimeFields:
         empty_software.last_mod = None
         empty_software.last_updated = None
 
-        assert isinstance(empty_software.last_mod, MTime)
+        assert_date_only_string(empty_software.last_mod)
+        assert empty_software.last_mod == "1980-01-01"
         assert isinstance(empty_software.last_updated, MTime)
 
     def test_mtime_string_representation(self, basic_software):
@@ -475,6 +485,7 @@ class TestMTimeFields:
         last_mod_str = str(basic_software.last_mod)
         last_updated_str = str(basic_software.last_updated)
 
+        assert_date_only_string(basic_software.last_mod)
         assert isinstance(last_mod_str, str)
         assert isinstance(last_updated_str, str)
         # Should contain date-like format
@@ -497,7 +508,7 @@ class TestMTimeFields:
         # This tests the behavior without requiring specific error handling
         try:
             software = ProcessingSoftware(name="Test", last_mod=invalid_time)
-            assert isinstance(software.last_mod, MTime)
+            assert_date_only_string(software.last_mod)
         except (ValueError, TypeError, OverflowError):
             # These exceptions are acceptable for invalid time values
             pass
@@ -650,7 +661,7 @@ class TestBoundaryValues:
         for timestamp in extreme_timestamps:
             try:
                 empty_software.last_mod = timestamp
-                assert isinstance(empty_software.last_mod, MTime)
+                assert_date_only_string(empty_software.last_mod)
             except (ValueError, OverflowError):
                 # Some extreme values might not be supported
                 pass
@@ -696,7 +707,8 @@ class TestIntegration:
         # Verify changes
         assert basic_software.name == "UpdatedSoftware"
         assert basic_software.version == "2.0.0"
-        assert isinstance(basic_software.last_mod, MTime)
+        assert_date_only_string(basic_software.last_mod)
+        assert basic_software.last_mod == "2023-08-01"
 
         # Verify dict reflects changes
         software_dict = basic_software.to_dict()
@@ -797,7 +809,7 @@ class TestPerformance:
             timestamp = 1672531200 + i * 86400  # Daily increments
             empty_software.last_mod = timestamp
             empty_software.last_updated = timestamp
-            assert isinstance(empty_software.last_mod, MTime)
+            assert_date_only_string(empty_software.last_mod)
             assert isinstance(empty_software.last_updated, MTime)
 
 
@@ -846,7 +858,8 @@ class TestFieldSpecifics:
     def test_last_mod_field_properties(self, empty_software):
         """Test last_mod field specific properties."""
         # Test default value type
-        assert isinstance(empty_software.last_mod, MTime)
+        assert_date_only_string(empty_software.last_mod)
+        assert empty_software.last_mod == "1980-01-01"
 
         # Test field metadata via Pydantic
         model_fields = empty_software.model_fields
@@ -889,7 +902,7 @@ class TestFieldSpecifics:
         ["last_mod", "last_updated"],
     )
     def test_time_field_type_consistency(self, empty_software, time_field):
-        """Test that time fields consistently return MTime objects."""
+        """Test last_mod date strings and last_updated MTime objects."""
         # Test with various input types
         time_inputs = [
             "2023-01-01",
@@ -900,4 +913,8 @@ class TestFieldSpecifics:
 
         for time_input in time_inputs:
             setattr(empty_software, time_field, time_input)
-            assert isinstance(getattr(empty_software, time_field), MTime)
+            field_value = getattr(empty_software, time_field)
+            if time_field == "last_mod":
+                assert_date_only_string(field_value)
+            else:
+                assert isinstance(field_value, MTime)
