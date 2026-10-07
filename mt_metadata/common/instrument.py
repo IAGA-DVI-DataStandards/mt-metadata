@@ -29,7 +29,7 @@ class Instrument(MetadataBase):
         Field(
             default="",
             description="Who manufactured the instrument.",
-            alias=None,
+            validation_alias=AliasChoices("manufacturer", "make"),
             json_schema_extra={
                 "units": None,
                 "required": False,
