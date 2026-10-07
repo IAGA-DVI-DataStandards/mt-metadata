@@ -12,7 +12,6 @@ from mt_metadata.common.enumerations import ArrayDTypeEnum, EstimateIntentionEnu
 from mt_metadata.common.units import get_unit_object
 from mt_metadata.transfer_functions.io.emtfxml.metadata import helpers
 
-
 # =====================================================
 
 

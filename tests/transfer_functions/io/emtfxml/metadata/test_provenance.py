@@ -27,7 +27,6 @@ from mt_metadata import __version__
 from mt_metadata.common.mttime import MTime
 from mt_metadata.transfer_functions.io.emtfxml.metadata import Person, Provenance
 
-
 # ====================================
 # Core Fixtures
 # ====================================
