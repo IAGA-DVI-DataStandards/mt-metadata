@@ -139,7 +139,7 @@ class TestDataTypeBasicFunctionality:
         assert minimal_data_type.tag == ""
         assert minimal_data_type.output == ""
         assert minimal_data_type.input == ""
-        assert minimal_data_type.units == "milliVolt per kilometer per nanoTesla"
+        assert minimal_data_type.units == "[mV/km]/[nT]"
 
     def test_basic_initialization(self, basic_data_type):
         """Test DataType initialization with basic data."""
@@ -151,7 +151,7 @@ class TestDataTypeBasicFunctionality:
         assert basic_data_type.tag == "error"
         assert basic_data_type.output == OutputEnum.E
         assert basic_data_type.input == InputEnum.H
-        assert basic_data_type.units == "mV/km/nT"
+        assert basic_data_type.units == "[mV/km]/[nT]"
 
     def test_complete_initialization(self, complete_data_type):
         """Test DataType initialization with complete data."""
@@ -212,7 +212,7 @@ class TestDataTypeValidation:
         """Test units field validation with various values."""
         if unit_values == "":
             dt = DataType(units=unit_values)
-            assert dt.units == ""
+            assert dt.units == "[]"
         else:
             # Units validator should convert to standardized form
             dt = DataType(units=unit_values)
@@ -256,9 +256,9 @@ class TestDataTypeValidation:
 
     def test_units_validator_error_handling(self):
         """Test units validator error handling with invalid units."""
-        # Test with an invalid unit - it should convert to 'unknown'
+        # Invalid units use the standard's dimensionless representation.
         dt = DataType(units="invalid_unit_xyz")
-        assert dt.units == "unknown"
+        assert dt.units == "[]"
 
 
 class TestDataTypeReadDict:
@@ -331,7 +331,7 @@ class TestDataTypeXMLGeneration:
         assert xml_element.attrib["type"] == "complex"
         assert xml_element.attrib["output"] == "E"
         assert xml_element.attrib["input"] == "H"
-        assert "mV/km/nT" in xml_element.attrib["units"]
+        assert xml_element.attrib["units"] == "[mV/km]/[nT]"
 
     def test_xml_generation_string_output(self, basic_data_type):
         """Test XML generation with string output."""
@@ -359,7 +359,7 @@ class TestDataTypeXMLGeneration:
         assert xml_element.attrib["type"] == "real"
         assert xml_element.attrib["output"] == ""
         assert xml_element.attrib["input"] == ""
-        assert xml_element.attrib["units"] == "mV/km/nT"
+        assert xml_element.attrib["units"] == "[mV/km]/[nT]"
 
     def test_xml_generation_parameters(self):
         """Test XML generation with different parameters."""
@@ -448,7 +448,7 @@ class TestDataTypeEdgeCases:
         assert dt.name == ""
         assert dt.description == ""
         assert dt.tag == ""
-        assert dt.units == ""
+        assert dt.units == "[]"
 
     def test_long_text_fields(self):
         """Test DataType with very long text fields."""
@@ -655,18 +655,18 @@ class TestDataTypeIntegration:
         """Test integration with units validation system."""
         # Test with valid units
         dt = DataType(units="[mV/km]/[nT]")
-        assert "mV/km/nT" in dt.units
+        assert dt.units == "[mV/km]/[nT]"
         assert "nT" in dt.units
 
         # Test with empty units
         dt_empty = DataType(units="")
-        assert dt_empty.units == ""
+        assert dt_empty.units == "[]"
 
         # Test that validator converts units properly
         dt_simple = DataType(units="mV/km/nT")
         assert isinstance(dt_simple.units, str)
         assert (
-            dt_simple.units == "mV/km/nT"
+            dt_simple.units == "[mV/km]/[nT]"
         )  # Should stay the same as it's already in symbol format
 
     def test_field_defaults_and_requirements(self):
@@ -682,7 +682,7 @@ class TestDataTypeIntegration:
         assert dt.tag == ""
         assert dt.output == ""
         assert dt.input == ""
-        assert dt.units == "milliVolt per kilometer per nanoTesla"
+        assert dt.units == "[mV/km]/[nT]"
 
         # All fields should be accessible and modifiable
         for field_name in dt.model_fields:

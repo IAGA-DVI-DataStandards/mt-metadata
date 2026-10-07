@@ -12,6 +12,7 @@ from mt_metadata.common.enumerations import ArrayDTypeEnum, EstimateIntentionEnu
 from mt_metadata.common.units import get_unit_object
 from mt_metadata.transfer_functions.io.emtfxml.metadata import helpers
 
+
 # =====================================================
 
 
@@ -141,7 +142,7 @@ class DataType(MetadataBase):
     units: Annotated[
         str,
         Field(
-            default="milliVolt per kilometer per nanoTesla",
+            default="[mV/km]/[nT]",
             description="Units for the data type",
             alias=None,
             json_schema_extra={

@@ -40,6 +40,7 @@ import pytest
 from mt_metadata import TF_XML
 from mt_metadata.transfer_functions.io.emtfxml import EMTFXML
 
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -103,8 +104,18 @@ def expected_provenance():
             ("creating_application", "EMTF File Conversion Utilities 4.0"),
             ("creator.email", "pbedrosian@usgs.gov"),
             ("creator.name", "Jade Crosbie, Paul Bedrosian and Anna Kelbert"),
+            ("creator.org", "U.S. Geological Survey"),
+            (
+                "creator.org_url",
+                "https://www.usgs.gov/natural-hazards/geomagnetism",
+            ),
             ("submitter.email", "akelbert@usgs.gov"),
             ("submitter.name", "Anna Kelbert"),
+            ("submitter.org", "U.S. Geological Survey, Geomagnetism Program"),
+            (
+                "submitter.org_url",
+                "https://www.usgs.gov/natural-hazards/geomagnetism",
+            ),
         ]
     )
 
