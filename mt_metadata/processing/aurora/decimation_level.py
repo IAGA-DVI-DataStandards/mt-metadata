@@ -470,6 +470,22 @@ class DecimationLevel(MetadataBase):
             logger.info(msg)
             return False
 
+        if self.stft.prewhitening_type == "ARMA":
+            for order_name in (
+                "prewhitening_ar_order",
+                "prewhitening_ma_order",
+            ):
+                if getattr(fc_decimation.stft, order_name) != getattr(
+                    self.stft, order_name
+                ):
+                    msg = (
+                        f"{order_name} does not agree "
+                        f"fc {getattr(fc_decimation.stft, order_name)} != "
+                        f"processing config {getattr(self.stft, order_name)}"
+                    )
+                    logger.info(msg)
+                    return False
+
         # recoloring
         try:
             assert fc_decimation.stft.recoloring == self.stft.recoloring
@@ -594,6 +610,8 @@ class DecimationLevel(MetadataBase):
         fc_dec_obj.stft.method = self.stft.method
         fc_dec_obj.stft.pre_fft_detrend_type = self.stft.pre_fft_detrend_type
         fc_dec_obj.stft.prewhitening_type = self.stft.prewhitening_type
+        fc_dec_obj.stft.prewhitening_ar_order = self.stft.prewhitening_ar_order
+        fc_dec_obj.stft.prewhitening_ma_order = self.stft.prewhitening_ma_order
         fc_dec_obj.stft.recoloring = self.stft.recoloring
         fc_dec_obj.time_series_decimation.sample_rate = self.decimation.sample_rate
         fc_dec_obj.stft.window = self.stft.window

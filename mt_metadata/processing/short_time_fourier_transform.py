@@ -30,7 +30,9 @@ class PreFftDetrendTypeEnum(StrEnumerationBase):
 
 
 class PrewhiteningTypeEnum(StrEnumerationBase):
+    none = ""
     first_difference = "first difference"
+    arma = "ARMA"
     other = "other"
 
 
@@ -115,6 +117,36 @@ class ShortTimeFourierTransform(MetadataBase):
                 "units": None,
                 "required": True,
                 "examples": ["first difference"],
+            },
+        ),
+    ]
+
+    prewhitening_ar_order: Annotated[
+        int,
+        Field(
+            default=0,
+            ge=0,
+            description="Order of the autoregressive prewhitening model",
+            alias=None,
+            json_schema_extra={
+                "units": None,
+                "required": True,
+                "examples": [3],
+            },
+        ),
+    ]
+
+    prewhitening_ma_order: Annotated[
+        int,
+        Field(
+            default=0,
+            ge=0,
+            description="Order of the moving-average prewhitening model",
+            alias=None,
+            json_schema_extra={
+                "units": None,
+                "required": True,
+                "examples": [0],
             },
         ),
     ]
