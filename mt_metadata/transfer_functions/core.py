@@ -622,6 +622,7 @@ class TF:
             "res": self.ex_ey_hz,
             "tf": self.hx_hy,
             "tf_error": self.hx_hy,
+            "tf_model_error": self.hx_hy,
             "all": [self.ex, self.ey, self.hz, self.hx, self.hy],
         }
 
@@ -638,6 +639,7 @@ class TF:
             "res": self.ex_ey_hz,
             "tf": self.ex_ey_hz,
             "tf_error": self.ex_ey_hz,
+            "tf_model_error": self.ex_ey_hz,
             "all": [self.ex, self.ey, self.hz, self.hx, self.hy],
         }
 
@@ -769,8 +771,10 @@ class TF:
             "res": (3, 3),
             "transfer_function": (3, 2),
             "transfer_function_error": (3, 2),
+            "transfer_function_model_error": (3, 2),
             "tf": (3, 2),
             "tf_error": (3, 2),
+            "tf_model_error": (3, 2),
         }
 
         shape = shape_dict[atype]

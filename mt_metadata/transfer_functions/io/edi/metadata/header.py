@@ -419,16 +419,27 @@ class Header(BasicLocation, GeographicLocation):
                 elif value in ["millivolts_per_kilometer_per_nanotesla"]:
                     value = "milliVolt per kilometer per nanoTesla"
 
-            if key == "declination":
-                if value in ["None", "none", None, "null"]:
-                    value = 0.0
-                try:
-                    setattr(self.declination, "value", value)
-                except Exception as error:
-                    logger.warning(
-                        f"Could not set declination value with {value}, cause the following error {error}"
-                    )
-                continue
+            if "declination" in key:
+                if key.find(".") < 0:
+                    if value in ["None", "none", None, "null"]:
+                        value = 0.0
+                    try:
+                        setattr(self.declination, "value", value)
+                    except Exception as error:
+                        logger.warning(
+                            f"Could not set declination value with {value}, cause the following error {error}"
+                        )
+                    continue
+                else:
+                    name, attr = key.split(".", 1)
+                    try:
+                        setattr(getattr(self, name), attr, value)
+                    except Exception as error:
+                        logger.warning(
+                            f"Could not set {name}.{attr} with {value}, cause the following error {error}"
+                        )
+                    continue
+
             elif key in ["long", "lon", "lonigutde"]:
                 key = "longitude"
             elif key in ["lat", "latitude"]:
