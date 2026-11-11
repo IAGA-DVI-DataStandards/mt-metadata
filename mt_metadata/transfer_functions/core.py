@@ -28,7 +28,6 @@ from mt_metadata.transfer_functions.io import EDI, EMTFXML, JFile, ZMM, ZongeMTA
 from mt_metadata.transfer_functions.io.zfiles.metadata import Channel as ZChannel
 from mt_metadata.transfer_functions.tf import Station
 
-
 # =============================================================================
 
 
