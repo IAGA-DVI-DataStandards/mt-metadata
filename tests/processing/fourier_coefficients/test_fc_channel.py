@@ -452,6 +452,23 @@ class TestFCChannelRepresentation:
                 continue
             assert getattr(fc_channel, key) == value
 
+    def test_prewhitening_result_serialization(self):
+        """Test fitted prewhitening coefficients survive model serialization."""
+        fc_channel = FCChannel(
+            prewhitening_type="ARMA",
+            prewhitening_fit_domain="full run",
+            prewhitening_response_convention="A(z) = 1 - sum(phi_k z^-k)",
+            prewhitening_ar_coefficients=[0.8, -0.2],
+            prewhitening_ma_coefficients=[],
+        )
+
+        restored = FCChannel.model_validate(fc_channel.model_dump())
+
+        assert restored.prewhitening_type == "ARMA"
+        assert restored.prewhitening_fit_domain == "full run"
+        assert restored.prewhitening_ar_coefficients == [0.8, -0.2]
+        assert restored.prewhitening_ma_coefficients == []
+
 
 class TestFCChannelEdgeCases:
     """Test edge cases and boundary conditions."""
@@ -502,6 +519,11 @@ class TestFCChannelEdgeCases:
             "sample_rate_window_step",
             "units",
             "time_period",
+            "prewhitening_type",
+            "prewhitening_fit_domain",
+            "prewhitening_response_convention",
+            "prewhitening_ar_coefficients",
+            "prewhitening_ma_coefficients",
         }
 
         assert set(fields.keys()) == expected_fields

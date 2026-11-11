@@ -51,7 +51,9 @@ def custom_stft():
         min_num_stft_windows=8,
         per_window_detrend_type=PerWindowDetrendTypeEnum.linear,
         pre_fft_detrend_type=PreFftDetrendTypeEnum.other,
-        prewhitening_type=PrewhiteningTypeEnum.other,
+        prewhitening_type=PrewhiteningTypeEnum.arma,
+        prewhitening_ar_order=3,
+        prewhitening_ma_order=0,
         recoloring=False,
         window=custom_window,
     )
@@ -101,6 +103,8 @@ class TestSTFTInitialization:
         assert default_stft.per_window_detrend_type == PerWindowDetrendTypeEnum.null
         assert default_stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.linear
         assert default_stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
+        assert default_stft.prewhitening_ar_order == 0
+        assert default_stft.prewhitening_ma_order == 0
         assert default_stft.recoloring is True
         assert isinstance(default_stft.window, Window)
 
@@ -111,7 +115,9 @@ class TestSTFTInitialization:
         assert custom_stft.min_num_stft_windows == 8
         assert custom_stft.per_window_detrend_type == PerWindowDetrendTypeEnum.linear
         assert custom_stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.other
-        assert custom_stft.prewhitening_type == PrewhiteningTypeEnum.other
+        assert custom_stft.prewhitening_type == PrewhiteningTypeEnum.arma
+        assert custom_stft.prewhitening_ar_order == 3
+        assert custom_stft.prewhitening_ma_order == 0
         assert custom_stft.recoloring is False
         assert isinstance(custom_stft.window, Window)
         assert custom_stft.window.num_samples == 256
@@ -140,6 +146,12 @@ class TestSTFTInitialization:
         with pytest.raises(ValidationError):
             ShortTimeFourierTransform(recoloring="not_boolean")
 
+        with pytest.raises(ValidationError):
+            ShortTimeFourierTransform(prewhitening_ar_order=-1)
+
+        with pytest.raises(ValidationError):
+            ShortTimeFourierTransform(prewhitening_ma_order=-1)
+
 
 class TestSTFTProperties:
     """Test STFT property access and computed fields."""
@@ -153,6 +165,8 @@ class TestSTFTProperties:
         assert hasattr(custom_stft, "per_window_detrend_type")
         assert hasattr(custom_stft, "pre_fft_detrend_type")
         assert hasattr(custom_stft, "prewhitening_type")
+        assert hasattr(custom_stft, "prewhitening_ar_order")
+        assert hasattr(custom_stft, "prewhitening_ma_order")
         assert hasattr(custom_stft, "recoloring")
         assert hasattr(custom_stft, "window")
 
@@ -229,7 +243,12 @@ class TestSTFTEnumerations:
 
     @pytest.mark.parametrize(
         "enum_value",
-        [PrewhiteningTypeEnum.first_difference, PrewhiteningTypeEnum.other],
+        [
+            PrewhiteningTypeEnum.none,
+            PrewhiteningTypeEnum.first_difference,
+            PrewhiteningTypeEnum.arma,
+            PrewhiteningTypeEnum.other,
+        ],
     )
     def test_prewhitening_enum_values(self, enum_value):
         """Test PrewhiteningTypeEnum values."""
@@ -435,6 +454,8 @@ class TestSTFTRepresentation:
         assert stft_dict["harmonic_indices"] == 10
         assert stft_dict["method"] == "wavelet"
         assert stft_dict["min_num_stft_windows"] == 8
+        assert stft_dict["prewhitening_ar_order"] == 3
+        assert stft_dict["prewhitening_ma_order"] == 0
         assert stft_dict["recoloring"] is False
 
     def test_model_dump_json(self, custom_stft):
@@ -500,6 +521,8 @@ class TestSTFTEdgeCases:
             "per_window_detrend_type",
             "pre_fft_detrend_type",
             "prewhitening_type",
+            "prewhitening_ar_order",
+            "prewhitening_ma_order",
             "recoloring",
             "window",
         }

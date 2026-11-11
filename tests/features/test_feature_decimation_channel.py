@@ -462,6 +462,23 @@ class TestFeatureDecimationChannelIntegration:
         assert "2023-01-01" in str(channel.time_period.start)
         assert "2023-12-31" in str(channel.time_period.end)
 
+    def test_prewhitening_result_serialization(self):
+        """Test fitted prewhitening coefficients survive model serialization."""
+        channel = FeatureDecimationChannel(
+            prewhitening_type="ARMA",
+            prewhitening_fit_domain="full run",
+            prewhitening_response_convention="A(z) = 1 - sum(phi_k z^-k)",
+            prewhitening_ar_coefficients=[0.8, -0.2],
+            prewhitening_ma_coefficients=[],
+        )
+
+        restored = FeatureDecimationChannel.model_validate(channel.model_dump())
+
+        assert restored.prewhitening_type == "ARMA"
+        assert restored.prewhitening_fit_domain == "full run"
+        assert restored.prewhitening_ar_coefficients == [0.8, -0.2]
+        assert restored.prewhitening_ma_coefficients == []
+
 
 # =====================================================
 # Test Configuration
