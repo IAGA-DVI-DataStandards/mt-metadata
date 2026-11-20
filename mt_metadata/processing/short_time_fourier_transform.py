@@ -3,10 +3,11 @@
 # =====================================================
 from typing import Annotated, Union
 
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common.enumerations import StrEnumerationBase
+from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
 from mt_metadata.processing.window import Window
 
 
@@ -27,13 +28,6 @@ class PreFftDetrendTypeEnum(StrEnumerationBase):
     linear = "linear"
     other = "other"
     null = ""
-
-
-class PrewhiteningTypeEnum(StrEnumerationBase):
-    none = ""
-    first_difference = "first difference"
-    arma = "ARMA"
-    other = "other"
 
 
 class ShortTimeFourierTransform(MetadataBase):
@@ -103,6 +97,20 @@ class ShortTimeFourierTransform(MetadataBase):
                 "units": None,
                 "required": True,
                 "examples": ["linear"],
+            },
+        ),
+    ]
+
+    prewhitening: Annotated[
+        Prewhitening,
+        Field(
+            default_factory=Prewhitening,
+            description="Prewhitening configuration",
+            alias=None,
+            json_schema_extra={
+                "units": None,
+                "required": True,
+                "examples": ["Prewhitening()"],
             },
         ),
     ]
@@ -178,6 +186,68 @@ class ShortTimeFourierTransform(MetadataBase):
             },
         ),
     ]
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_prewhitening(cls, values):
+        """Map legacy flat fields to the composed prewhitening metadata."""
+        if not isinstance(values, dict):
+            return values
+
+        values = values.copy()
+        prewhitening = values.get("prewhitening")
+        if prewhitening is None:
+            values["prewhitening"] = {
+                "type": values.get(
+                    "prewhitening_type",
+                    PrewhiteningTypeEnum.first_difference,
+                ),
+                "ar_order": values.get("prewhitening_ar_order", 0),
+                "ma_order": values.get("prewhitening_ma_order", 0),
+            }
+        else:
+            if isinstance(prewhitening, dict):
+                get_value = prewhitening.get
+            else:
+                get_value = lambda name: getattr(prewhitening, name)
+            values.setdefault(
+                "prewhitening_type",
+                get_value("type"),
+            )
+            values.setdefault(
+                "prewhitening_ar_order",
+                get_value("ar_order"),
+            )
+            values.setdefault(
+                "prewhitening_ma_order",
+                get_value("ma_order"),
+            )
+        return values
+
+    @field_validator("prewhitening_type", mode="after")
+    @classmethod
+    def sync_prewhitening_type(cls, value, info):
+        """Keep the composed metadata synchronized with the legacy field."""
+        if "prewhitening" in info.data:
+            info.data["prewhitening"].type = value
+        return value
+
+    @field_validator("prewhitening_ar_order", "prewhitening_ma_order", mode="after")
+    @classmethod
+    def sync_prewhitening_orders(cls, value, info):
+        """Keep the composed metadata synchronized with legacy order fields."""
+        if "prewhitening" in info.data:
+            field_name = info.field_name.removeprefix("prewhitening_")
+            setattr(info.data["prewhitening"], field_name, value)
+        return value
+
+    @model_validator(mode="after")
+    def sync_legacy_prewhitening_fields(self):
+        """Expose composed metadata through the legacy flat STFT fields."""
+        object.__setattr__(self, "prewhitening_type", self.prewhitening.type)
+        object.__setattr__(self, "prewhitening_ar_order", self.prewhitening.ar_order)
+        object.__setattr__(self, "prewhitening_ma_order", self.prewhitening.ma_order)
+        return self
 
 
 # what is the point of this main function?

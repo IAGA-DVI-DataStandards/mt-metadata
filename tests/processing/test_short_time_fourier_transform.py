@@ -15,6 +15,7 @@ whilst optimizing for efficiency.
 import pytest
 from pydantic import ValidationError
 
+from mt_metadata.processing.prewhitening import Prewhitening
 from mt_metadata.processing.short_time_fourier_transform import (
     MethodEnum,
     PerWindowDetrendTypeEnum,
@@ -23,6 +24,7 @@ from mt_metadata.processing.short_time_fourier_transform import (
     ShortTimeFourierTransform,
 )
 from mt_metadata.processing.window import ClockZeroTypeEnum, TypeEnum, Window
+
 
 # =============================================================================
 # Fixtures
@@ -105,6 +107,7 @@ class TestSTFTInitialization:
         assert default_stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
         assert default_stft.prewhitening_ar_order == 0
         assert default_stft.prewhitening_ma_order == 0
+        assert default_stft.prewhitening == Prewhitening()
         assert default_stft.recoloring is True
         assert isinstance(default_stft.window, Window)
 
@@ -118,6 +121,11 @@ class TestSTFTInitialization:
         assert custom_stft.prewhitening_type == PrewhiteningTypeEnum.arma
         assert custom_stft.prewhitening_ar_order == 3
         assert custom_stft.prewhitening_ma_order == 0
+        assert custom_stft.prewhitening == Prewhitening(
+            type=PrewhiteningTypeEnum.arma,
+            ar_order=3,
+            ma_order=0,
+        )
         assert custom_stft.recoloring is False
         assert isinstance(custom_stft.window, Window)
         assert custom_stft.window.num_samples == 256
@@ -520,6 +528,7 @@ class TestSTFTEdgeCases:
             "min_num_stft_windows",
             "per_window_detrend_type",
             "pre_fft_detrend_type",
+            "prewhitening",
             "prewhitening_type",
             "prewhitening_ar_order",
             "prewhitening_ma_order",
@@ -539,6 +548,30 @@ class TestSTFTEdgeCases:
         assert stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.linear
         assert stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
         assert stft.recoloring is True
+
+    def test_composed_prewhitening_configuration(self):
+        prewhitening = Prewhitening(
+            type=PrewhiteningTypeEnum.arma,
+            ar_order=3,
+            ma_order=1,
+        )
+        stft = ShortTimeFourierTransform(prewhitening=prewhitening)
+
+        assert stft.prewhitening == prewhitening
+        assert stft.prewhitening_type == PrewhiteningTypeEnum.arma
+        assert stft.prewhitening_ar_order == 3
+        assert stft.prewhitening_ma_order == 1
+
+    def test_legacy_prewhitening_fields_update_composed_metadata(self):
+        stft = ShortTimeFourierTransform(
+            prewhitening_type=PrewhiteningTypeEnum.arma,
+            prewhitening_ar_order=2,
+            prewhitening_ma_order=1,
+        )
+
+        assert stft.prewhitening.type == PrewhiteningTypeEnum.arma
+        assert stft.prewhitening.ar_order == 2
+        assert stft.prewhitening.ma_order == 1
 
 
 class TestSTFTIntegration:
