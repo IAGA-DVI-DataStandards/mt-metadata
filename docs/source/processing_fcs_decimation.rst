@@ -381,7 +381,7 @@ Decimation
        |                                                        |                                               |                |
        +--------------------------------------------------------+-----------------------------------------------+----------------+
 
-:navy:`short_time_fourier_transform.prewhitening_type`
+:navy:`short_time_fourier_transform.prewhitening.type`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
@@ -391,7 +391,7 @@ Decimation
        :widths: 52 45 15
 
        +-----------------------------------------------------+-----------------------------------------------+----------------+
-       | **short_time_fourier_transform.prewhitening_type**  | **Description**                               | **Example**    |
+       | **short_time_fourier_transform.prewhitening.type**  | **Description**                               | **Example**    |
        +=====================================================+===============================================+================+
        | **Required**: :red:`True`                           | Prewhitening method to be applied             | first          |
        |                                                     |                                               | difference     |
@@ -405,6 +405,10 @@ Decimation
        |                                                     |                                               |                |
        |                                                     |                                               |                |
        +-----------------------------------------------------+-----------------------------------------------+----------------+
+
+The ARMA orders are configured with
+``short_time_fourier_transform.prewhitening.ar_order`` and
+``short_time_fourier_transform.prewhitening.ma_order``.
 
 :navy:`short_time_fourier_transform.recoloring`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

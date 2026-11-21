@@ -52,9 +52,11 @@ def custom_stft():
         min_num_stft_windows=8,
         per_window_detrend_type=PerWindowDetrendTypeEnum.linear,
         pre_fft_detrend_type=PreFftDetrendTypeEnum.other,
-        prewhitening_type=PrewhiteningTypeEnum.arma,
-        prewhitening_ar_order=3,
-        prewhitening_ma_order=0,
+        prewhitening=Prewhitening(
+            type=PrewhiteningTypeEnum.arma,
+            ar_order=3,
+            ma_order=0,
+        ),
         recoloring=False,
         window=custom_window,
     )
@@ -71,7 +73,7 @@ def stft_params():
             "min_num_stft_windows": 6,
             "per_window_detrend_type": PerWindowDetrendTypeEnum.constant,
             "pre_fft_detrend_type": PreFftDetrendTypeEnum.linear,
-            "prewhitening_type": PrewhiteningTypeEnum.first_difference,
+            "prewhitening": Prewhitening(type=PrewhiteningTypeEnum.first_difference),
             "recoloring": True,
             "window": Window(num_samples=512, overlap=64, type=TypeEnum.hann),
         },
@@ -81,7 +83,7 @@ def stft_params():
             "min_num_stft_windows": 3,
             "per_window_detrend_type": PerWindowDetrendTypeEnum.null,
             "pre_fft_detrend_type": PreFftDetrendTypeEnum.null,
-            "prewhitening_type": PrewhiteningTypeEnum.first_difference,
+            "prewhitening": Prewhitening(type=PrewhiteningTypeEnum.first_difference),
             "recoloring": False,
             "window": Window(num_samples=128, overlap=16, type=TypeEnum.blackman),
         },
@@ -103,9 +105,6 @@ class TestSTFTInitialization:
         assert default_stft.min_num_stft_windows == 0
         assert default_stft.per_window_detrend_type == PerWindowDetrendTypeEnum.null
         assert default_stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.linear
-        assert default_stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
-        assert default_stft.prewhitening_ar_order == 0
-        assert default_stft.prewhitening_ma_order == 0
         assert default_stft.prewhitening == Prewhitening()
         assert default_stft.recoloring is True
         assert isinstance(default_stft.window, Window)
@@ -117,9 +116,6 @@ class TestSTFTInitialization:
         assert custom_stft.min_num_stft_windows == 8
         assert custom_stft.per_window_detrend_type == PerWindowDetrendTypeEnum.linear
         assert custom_stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.other
-        assert custom_stft.prewhitening_type == PrewhiteningTypeEnum.arma
-        assert custom_stft.prewhitening_ar_order == 3
-        assert custom_stft.prewhitening_ma_order == 0
         assert custom_stft.prewhitening == Prewhitening(
             type=PrewhiteningTypeEnum.arma,
             ar_order=3,
@@ -548,7 +544,7 @@ class TestSTFTEdgeCases:
         assert stft.method == MethodEnum.fft
         assert stft.per_window_detrend_type == PerWindowDetrendTypeEnum.null
         assert stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.linear
-        assert stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
+        assert stft.prewhitening.type == PrewhiteningTypeEnum.first_difference
         assert stft.recoloring is True
 
     def test_composed_prewhitening_configuration(self):
@@ -560,9 +556,9 @@ class TestSTFTEdgeCases:
         stft = ShortTimeFourierTransform(prewhitening=prewhitening)
 
         assert stft.prewhitening == prewhitening
-        assert stft.prewhitening_type == PrewhiteningTypeEnum.arma
-        assert stft.prewhitening_ar_order == 3
-        assert stft.prewhitening_ma_order == 0
+        assert stft.prewhitening.type == PrewhiteningTypeEnum.arma
+        assert stft.prewhitening.ar_order == 3
+        assert stft.prewhitening.ma_order == 0
 
     def test_legacy_prewhitening_fields_update_composed_metadata(self):
         stft = ShortTimeFourierTransform(
@@ -591,7 +587,7 @@ class TestSTFTIntegration:
         assert stft.min_num_stft_windows == 6
         assert stft.per_window_detrend_type == PerWindowDetrendTypeEnum.constant
         assert stft.pre_fft_detrend_type == PreFftDetrendTypeEnum.linear
-        assert stft.prewhitening_type == PrewhiteningTypeEnum.first_difference
+        assert stft.prewhitening.type == PrewhiteningTypeEnum.first_difference
         assert stft.recoloring is True
 
         # Test serialization and deserialization
@@ -605,7 +601,7 @@ class TestSTFTIntegration:
         fft_stft = ShortTimeFourierTransform(
             method=MethodEnum.fft,
             pre_fft_detrend_type=PreFftDetrendTypeEnum.linear,
-            prewhitening_type=PrewhiteningTypeEnum.first_difference,
+            prewhitening=Prewhitening(type=PrewhiteningTypeEnum.first_difference),
         )
         assert fft_stft.method == MethodEnum.fft
 
@@ -637,7 +633,7 @@ class TestSTFTIntegration:
             {
                 "method": MethodEnum.other,
                 "pre_fft_detrend_type": PreFftDetrendTypeEnum.other,
-                "prewhitening_type": PrewhiteningTypeEnum.other,
+                "prewhitening": Prewhitening(type=PrewhiteningTypeEnum.other),
                 "per_window_detrend_type": PerWindowDetrendTypeEnum.null,
             },
         ]
@@ -653,7 +649,7 @@ class TestSTFTIntegration:
         """Test how recoloring setting affects the workflow."""
         stft = ShortTimeFourierTransform(
             method=MethodEnum.fft,
-            prewhitening_type=PrewhiteningTypeEnum.first_difference,
+            prewhitening=Prewhitening(type=PrewhiteningTypeEnum.first_difference),
             recoloring=recoloring_value,
         )
 

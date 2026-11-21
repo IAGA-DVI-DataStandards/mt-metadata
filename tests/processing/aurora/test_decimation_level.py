@@ -32,6 +32,7 @@ from mt_metadata.processing.fourier_coefficients.decimation import (
     Decimation as FCDecimation,
 )
 
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -636,9 +637,9 @@ class TestDecimationLevelFCCreation:
         assert fc_dec.time_series_decimation.level == 0
         assert fc_dec.time_series_decimation.factor == 1
         assert fc_dec.id == "0"
-        assert fc_dec.stft.prewhitening_type == "ARMA"
-        assert fc_dec.stft.prewhitening_ar_order == 3
-        assert fc_dec.stft.prewhitening_ma_order == 0
+        assert fc_dec.stft.prewhitening.type == "ARMA"
+        assert fc_dec.stft.prewhitening.ar_order == 3
+        assert fc_dec.stft.prewhitening.ma_order == 0
 
     def test_to_fc_decimation_remote_channels(self, populated_decimation_level):
         """Test to_fc_decimation method with remote channels."""
