@@ -587,8 +587,9 @@ class TestDecimationLevelFCCompatibility:
     ):
         """Test ARMA order mismatches invalidate archived Fourier coefficients."""
         dec_level = populated_decimation_level
-        dec_level.stft.prewhitening_type = "ARMA"
-        dec_level.stft.prewhitening_ar_order = 3
+        dec_level.stft.prewhitening = dec_level.stft.prewhitening.model_copy(
+            update={"type": "ARMA", "ar_order": 3}
+        )
 
         mock_fc_decimation.channels_estimated = dec_level.local_channels
         mock_fc_decimation.time_series_decimation.anti_alias_filter = (
@@ -623,9 +624,9 @@ class TestDecimationLevelFCCreation:
     def test_to_fc_decimation_local_channels(self, populated_decimation_level):
         """Test to_fc_decimation method with local channels."""
         dec_level = populated_decimation_level
-        dec_level.stft.prewhitening_type = "ARMA"
-        dec_level.stft.prewhitening_ar_order = 3
-        dec_level.stft.prewhitening_ma_order = 0
+        dec_level.stft.prewhitening = dec_level.stft.prewhitening.model_copy(
+            update={"type": "ARMA", "ar_order": 3, "ma_order": 0}
+        )
 
         fc_dec = dec_level.to_fc_decimation(remote=False)
 

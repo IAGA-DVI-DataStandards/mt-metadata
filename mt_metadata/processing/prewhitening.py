@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common.enumerations import StrEnumerationBase
@@ -59,3 +59,14 @@ class Prewhitening(MetadataBase):
             },
         ),
     ]
+
+    @model_validator(mode="after")
+    def validate_arma_orders(self) -> "Prewhitening":
+        """Validate the orders supported by the configured prewhitening type."""
+        if self.type == PrewhiteningTypeEnum.arma and self.ar_order < 1:
+            msg = "ARMA prewhitening requires ar_order to be at least 1"
+            raise ValueError(msg)
+        if self.type == PrewhiteningTypeEnum.arma and self.ma_order != 0:
+            msg = "ARMA prewhitening currently supports only ma_order == 0"
+            raise NotImplementedError(msg)
+        return self

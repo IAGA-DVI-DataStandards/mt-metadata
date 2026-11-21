@@ -145,7 +145,7 @@ class ShortTimeFourierTransform(MetadataBase):
 
     @model_validator(mode="before")
     @classmethod
-    def populate_prewhitening(cls, values):
+    def map_legacy_prewhitening_fields(cls, values):
         """Map legacy flat fields to the composed prewhitening metadata."""
         if not isinstance(values, dict):
             return values

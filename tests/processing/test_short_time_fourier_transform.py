@@ -25,6 +25,7 @@ from mt_metadata.processing.short_time_fourier_transform import (
 )
 from mt_metadata.processing.window import ClockZeroTypeEnum, TypeEnum, Window
 
+
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -259,7 +260,10 @@ class TestSTFTEnumerations:
     )
     def test_prewhitening_enum_values(self, enum_value):
         """Test PrewhiteningTypeEnum values."""
-        stft = ShortTimeFourierTransform(prewhitening_type=enum_value)
+        kwargs = {"prewhitening_type": enum_value}
+        if enum_value == PrewhiteningTypeEnum.arma:
+            kwargs["prewhitening_ar_order"] = 1
+        stft = ShortTimeFourierTransform(**kwargs)
         assert stft.prewhitening_type == enum_value
 
 
@@ -552,25 +556,25 @@ class TestSTFTEdgeCases:
         prewhitening = Prewhitening(
             type=PrewhiteningTypeEnum.arma,
             ar_order=3,
-            ma_order=1,
+            ma_order=0,
         )
         stft = ShortTimeFourierTransform(prewhitening=prewhitening)
 
         assert stft.prewhitening == prewhitening
         assert stft.prewhitening_type == PrewhiteningTypeEnum.arma
         assert stft.prewhitening_ar_order == 3
-        assert stft.prewhitening_ma_order == 1
+        assert stft.prewhitening_ma_order == 0
 
     def test_legacy_prewhitening_fields_update_composed_metadata(self):
         stft = ShortTimeFourierTransform(
             prewhitening_type=PrewhiteningTypeEnum.arma,
             prewhitening_ar_order=2,
-            prewhitening_ma_order=1,
+            prewhitening_ma_order=0,
         )
 
         assert stft.prewhitening.type == PrewhiteningTypeEnum.arma
         assert stft.prewhitening.ar_order == 2
-        assert stft.prewhitening.ma_order == 1
+        assert stft.prewhitening.ma_order == 0
 
 
 class TestSTFTIntegration:
