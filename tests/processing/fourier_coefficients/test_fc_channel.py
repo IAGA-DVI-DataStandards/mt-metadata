@@ -17,6 +17,8 @@ from pydantic import ValidationError
 
 from mt_metadata.common import TimePeriod
 from mt_metadata.processing.fourier_coefficients.fc_channel import FCChannel
+from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
+
 
 # =============================================================================
 # Fixtures
@@ -455,19 +457,36 @@ class TestFCChannelRepresentation:
     def test_prewhitening_result_serialization(self):
         """Test fitted prewhitening coefficients survive model serialization."""
         fc_channel = FCChannel(
-            prewhitening_type="ARMA",
-            prewhitening_fit_domain="full run",
-            prewhitening_response_convention="A(z) = 1 - sum(phi_k z^-k)",
-            prewhitening_ar_coefficients=[0.8, -0.2],
-            prewhitening_ma_coefficients=[],
+            prewhitening=Prewhitening(
+                type=PrewhiteningTypeEnum.arma,
+                ar_order=2,
+                fit_domain="full run",
+                response_convention="A(z) = 1 - sum(phi_k z^-k)",
+                ar_coefficients=[0.8, -0.2],
+                ma_coefficients=[],
+            )
         )
 
         restored = FCChannel.model_validate(fc_channel.model_dump())
 
-        assert restored.prewhitening_type == "ARMA"
-        assert restored.prewhitening_fit_domain == "full run"
-        assert restored.prewhitening_ar_coefficients == [0.8, -0.2]
-        assert restored.prewhitening_ma_coefficients == []
+        assert restored.prewhitening.type == PrewhiteningTypeEnum.arma
+        assert restored.prewhitening.fit_domain == "full run"
+        assert restored.prewhitening.ar_coefficients == [0.8, -0.2]
+        assert restored.prewhitening.ma_coefficients == []
+
+    def test_legacy_prewhitening_properties(self):
+        """Test deprecated flat properties map to nested metadata."""
+        fc_channel = FCChannel()
+        fc_channel.prewhitening_type = "ARMA"
+        fc_channel.prewhitening_fit_domain = "full run"
+        fc_channel.prewhitening_response_convention = "A(z) = 1 - sum(phi_k z^-k)"
+        fc_channel.prewhitening_ar_coefficients = [0.8, -0.2]
+        fc_channel.prewhitening_ma_coefficients = []
+
+        assert fc_channel.prewhitening.type == PrewhiteningTypeEnum.arma
+        assert fc_channel.prewhitening.ar_order == 2
+        assert fc_channel.prewhitening.fit_domain == "full run"
+        assert "prewhitening_type" not in fc_channel.model_dump()
 
 
 class TestFCChannelEdgeCases:
@@ -519,11 +538,7 @@ class TestFCChannelEdgeCases:
             "sample_rate_window_step",
             "units",
             "time_period",
-            "prewhitening_type",
-            "prewhitening_fit_domain",
-            "prewhitening_response_convention",
-            "prewhitening_ar_coefficients",
-            "prewhitening_ma_coefficients",
+            "prewhitening",
         }
 
         assert set(fields.keys()) == expected_fields

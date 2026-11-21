@@ -1,7 +1,6 @@
 # =====================================================
 # Imports
 # =====================================================
-import json
 from typing import Annotated
 
 from pydantic import Field, field_validator
@@ -9,6 +8,7 @@ from pydantic import Field, field_validator
 from mt_metadata.base import MetadataBase
 from mt_metadata.common import TimePeriod
 from mt_metadata.common.units import get_unit_object
+from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
 
 
 # =====================================================
@@ -111,72 +111,16 @@ class FCChannel(MetadataBase):
         ),
     ]
 
-    prewhitening_type: Annotated[
-        str,
+    prewhitening: Annotated[
+        Prewhitening | None,
         Field(
-            default="",
-            description="Prewhitening method applied before Fourier transformation",
+            default=None,
+            description="Prewhitening configuration and applied-filter metadata",
             alias=None,
             json_schema_extra={
                 "units": None,
-                "required": True,
-                "examples": ["ARMA"],
-            },
-        ),
-    ]
-
-    prewhitening_fit_domain: Annotated[
-        str,
-        Field(
-            default="",
-            description="Time-series domain over which prewhitening was fit",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": ["full run"],
-            },
-        ),
-    ]
-
-    prewhitening_response_convention: Annotated[
-        str,
-        Field(
-            default="",
-            description="Discrete-time transfer-function convention for prewhitening",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": ["A(z) = 1 - sum(phi_k z^-k)"],
-            },
-        ),
-    ]
-
-    prewhitening_ar_coefficients: Annotated[
-        list[float],
-        Field(
-            default_factory=list,
-            description="Fitted autoregressive prewhitening coefficients",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": [[0.8, -0.2]],
-            },
-        ),
-    ]
-
-    prewhitening_ma_coefficients: Annotated[
-        list[float],
-        Field(
-            default_factory=list,
-            description="Fitted moving-average prewhitening coefficients",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": [[]],
+                "required": False,
+                "examples": ["Prewhitening()"],
             },
         ),
     ]
@@ -194,14 +138,61 @@ class FCChannel(MetadataBase):
         except KeyError as error:
             raise KeyError(error)
 
-    @field_validator(
-        "prewhitening_ar_coefficients",
-        "prewhitening_ma_coefficients",
-        mode="before",
-    )
-    @classmethod
-    def validate_prewhitening_coefficients(cls, value):
-        """Deserialize coefficient lists read from HDF5 attributes."""
-        if isinstance(value, str):
-            return json.loads(value)
-        return value
+    def _update_legacy_prewhitening(self, **updates) -> None:
+        prewhitening = self.prewhitening or Prewhitening(type=PrewhiteningTypeEnum.none)
+        object.__setattr__(
+            self,
+            "prewhitening",
+            prewhitening.model_copy(update=updates),
+        )
+
+    @property
+    def prewhitening_type(self) -> str:
+        """Deprecated compatibility view of ``prewhitening.type``."""
+        return self.prewhitening.type.value if self.prewhitening else ""
+
+    @prewhitening_type.setter
+    def prewhitening_type(self, value: str | PrewhiteningTypeEnum) -> None:
+        self._update_legacy_prewhitening(type=PrewhiteningTypeEnum(value))
+
+    @property
+    def prewhitening_fit_domain(self) -> str:
+        """Deprecated compatibility view of ``prewhitening.fit_domain``."""
+        return self.prewhitening.fit_domain if self.prewhitening else ""
+
+    @prewhitening_fit_domain.setter
+    def prewhitening_fit_domain(self, value: str) -> None:
+        self._update_legacy_prewhitening(fit_domain=value)
+
+    @property
+    def prewhitening_response_convention(self) -> str:
+        """Deprecated compatibility view of ``prewhitening.response_convention``."""
+        return self.prewhitening.response_convention if self.prewhitening else ""
+
+    @prewhitening_response_convention.setter
+    def prewhitening_response_convention(self, value: str) -> None:
+        self._update_legacy_prewhitening(response_convention=value)
+
+    @property
+    def prewhitening_ar_coefficients(self) -> list[float]:
+        """Deprecated compatibility view of ``prewhitening.ar_coefficients``."""
+        return self.prewhitening.ar_coefficients if self.prewhitening else []
+
+    @prewhitening_ar_coefficients.setter
+    def prewhitening_ar_coefficients(self, value: list[float]) -> None:
+        self._update_legacy_prewhitening(
+            ar_order=len(value),
+            ar_coefficients=value,
+        )
+
+    @property
+    def prewhitening_ma_coefficients(self) -> list[float]:
+        """Deprecated compatibility view of ``prewhitening.ma_coefficients``."""
+        return self.prewhitening.ma_coefficients if self.prewhitening else []
+
+    @prewhitening_ma_coefficients.setter
+    def prewhitening_ma_coefficients(self, value: list[float]) -> None:
+        self._update_legacy_prewhitening(
+            ma_order=len(value),
+            ma_coefficients=value,
+        )
