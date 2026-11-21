@@ -16,7 +16,6 @@ from mt_metadata.common.units import get_unit_object
 from mt_metadata.features.feature_decimation_channel import FeatureDecimationChannel
 from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
 
-
 # =====================================================
 # Fixtures
 # =====================================================

@@ -19,7 +19,6 @@ from mt_metadata.common import TimePeriod
 from mt_metadata.processing.fourier_coefficients.fc_channel import FCChannel
 from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
