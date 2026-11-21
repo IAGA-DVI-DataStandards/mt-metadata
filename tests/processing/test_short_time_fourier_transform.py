@@ -25,7 +25,6 @@ from mt_metadata.processing.short_time_fourier_transform import (
 )
 from mt_metadata.processing.window import ClockZeroTypeEnum, TypeEnum, Window
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
