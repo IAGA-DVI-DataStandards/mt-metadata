@@ -116,9 +116,10 @@ def mock_fc_decimation():
     fc_dec.short_time_fourier_transform.method = "fft"
 
     fc_dec.stft = Mock()
-    fc_dec.stft.prewhitening_type = "first difference"  # Use valid enum value
-    fc_dec.stft.prewhitening_ar_order = 0
-    fc_dec.stft.prewhitening_ma_order = 0
+    fc_dec.stft.prewhitening = Mock()
+    fc_dec.stft.prewhitening.type = "first difference"
+    fc_dec.stft.prewhitening.ar_order = 0
+    fc_dec.stft.prewhitening.ma_order = 0
     fc_dec.stft.recoloring = False
     fc_dec.stft.pre_fft_detrend_type = "linear"
     fc_dec.stft.min_num_stft_windows = 2
@@ -475,12 +476,12 @@ class TestDecimationLevelFCCompatibility:
             dec_level.decimation.sample_rate
         )
         mock_fc_decimation.short_time_fourier_transform.method = dec_level.stft.method
-        mock_fc_decimation.stft.prewhitening_type = dec_level.stft.prewhitening_type
-        mock_fc_decimation.stft.prewhitening_ar_order = (
-            dec_level.stft.prewhitening_ar_order
+        mock_fc_decimation.stft.prewhitening.type = dec_level.stft.prewhitening.type
+        mock_fc_decimation.stft.prewhitening.ar_order = (
+            dec_level.stft.prewhitening.ar_order
         )
-        mock_fc_decimation.stft.prewhitening_ma_order = (
-            dec_level.stft.prewhitening_ma_order
+        mock_fc_decimation.stft.prewhitening.ma_order = (
+            dec_level.stft.prewhitening.ma_order
         )
         mock_fc_decimation.stft.recoloring = dec_level.stft.recoloring
         mock_fc_decimation.stft.pre_fft_detrend_type = (
@@ -559,12 +560,12 @@ class TestDecimationLevelFCCompatibility:
             dec_level.decimation.sample_rate
         )
         mock_fc_decimation.short_time_fourier_transform.method = dec_level.stft.method
-        mock_fc_decimation.stft.prewhitening_type = dec_level.stft.prewhitening_type
-        mock_fc_decimation.stft.prewhitening_ar_order = (
-            dec_level.stft.prewhitening_ar_order
+        mock_fc_decimation.stft.prewhitening.type = dec_level.stft.prewhitening.type
+        mock_fc_decimation.stft.prewhitening.ar_order = (
+            dec_level.stft.prewhitening.ar_order
         )
-        mock_fc_decimation.stft.prewhitening_ma_order = (
-            dec_level.stft.prewhitening_ma_order
+        mock_fc_decimation.stft.prewhitening.ma_order = (
+            dec_level.stft.prewhitening.ma_order
         )
         mock_fc_decimation.stft.recoloring = dec_level.stft.recoloring
         mock_fc_decimation.stft.pre_fft_detrend_type = (
@@ -586,8 +587,9 @@ class TestDecimationLevelFCCompatibility:
     ):
         """Test ARMA order mismatches invalidate archived Fourier coefficients."""
         dec_level = populated_decimation_level
-        dec_level.stft.prewhitening_type = "ARMA"
-        dec_level.stft.prewhitening_ar_order = 3
+        dec_level.stft.prewhitening = dec_level.stft.prewhitening.model_copy(
+            update={"type": "ARMA", "ar_order": 3}
+        )
 
         mock_fc_decimation.channels_estimated = dec_level.local_channels
         mock_fc_decimation.time_series_decimation.anti_alias_filter = (
@@ -597,10 +599,10 @@ class TestDecimationLevelFCCompatibility:
             dec_level.decimation.sample_rate
         )
         mock_fc_decimation.short_time_fourier_transform.method = dec_level.stft.method
-        mock_fc_decimation.stft.prewhitening_type = dec_level.stft.prewhitening_type
-        mock_fc_decimation.stft.prewhitening_ar_order = 2
-        mock_fc_decimation.stft.prewhitening_ma_order = (
-            dec_level.stft.prewhitening_ma_order
+        mock_fc_decimation.stft.prewhitening.type = dec_level.stft.prewhitening.type
+        mock_fc_decimation.stft.prewhitening.ar_order = 2
+        mock_fc_decimation.stft.prewhitening.ma_order = (
+            dec_level.stft.prewhitening.ma_order
         )
 
         assert (
@@ -622,9 +624,9 @@ class TestDecimationLevelFCCreation:
     def test_to_fc_decimation_local_channels(self, populated_decimation_level):
         """Test to_fc_decimation method with local channels."""
         dec_level = populated_decimation_level
-        dec_level.stft.prewhitening_type = "ARMA"
-        dec_level.stft.prewhitening_ar_order = 3
-        dec_level.stft.prewhitening_ma_order = 0
+        dec_level.stft.prewhitening = dec_level.stft.prewhitening.model_copy(
+            update={"type": "ARMA", "ar_order": 3, "ma_order": 0}
+        )
 
         fc_dec = dec_level.to_fc_decimation(remote=False)
 
@@ -634,9 +636,9 @@ class TestDecimationLevelFCCreation:
         assert fc_dec.time_series_decimation.level == 0
         assert fc_dec.time_series_decimation.factor == 1
         assert fc_dec.id == "0"
-        assert fc_dec.stft.prewhitening_type == "ARMA"
-        assert fc_dec.stft.prewhitening_ar_order == 3
-        assert fc_dec.stft.prewhitening_ma_order == 0
+        assert fc_dec.stft.prewhitening.type == "ARMA"
+        assert fc_dec.stft.prewhitening.ar_order == 3
+        assert fc_dec.stft.prewhitening.ma_order == 0
 
     def test_to_fc_decimation_remote_channels(self, populated_decimation_level):
         """Test to_fc_decimation method with remote channels."""

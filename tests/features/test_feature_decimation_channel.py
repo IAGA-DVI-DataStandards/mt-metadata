@@ -14,6 +14,7 @@ from mt_metadata.base import MetadataBase
 from mt_metadata.common import TimePeriod
 from mt_metadata.common.units import get_unit_object
 from mt_metadata.features.feature_decimation_channel import FeatureDecimationChannel
+from mt_metadata.processing.prewhitening import Prewhitening, PrewhiteningTypeEnum
 
 # =====================================================
 # Fixtures
@@ -465,19 +466,22 @@ class TestFeatureDecimationChannelIntegration:
     def test_prewhitening_result_serialization(self):
         """Test fitted prewhitening coefficients survive model serialization."""
         channel = FeatureDecimationChannel(
-            prewhitening_type="ARMA",
-            prewhitening_fit_domain="full run",
-            prewhitening_response_convention="A(z) = 1 - sum(phi_k z^-k)",
-            prewhitening_ar_coefficients=[0.8, -0.2],
-            prewhitening_ma_coefficients=[],
+            prewhitening=Prewhitening(
+                type=PrewhiteningTypeEnum.arma,
+                ar_order=2,
+                fit_domain="full run",
+                response_convention="A(z) = 1 - sum(phi_k z^-k)",
+                ar_coefficients=[0.8, -0.2],
+                ma_coefficients=[],
+            )
         )
 
         restored = FeatureDecimationChannel.model_validate(channel.model_dump())
 
-        assert restored.prewhitening_type == "ARMA"
-        assert restored.prewhitening_fit_domain == "full run"
-        assert restored.prewhitening_ar_coefficients == [0.8, -0.2]
-        assert restored.prewhitening_ma_coefficients == []
+        assert restored.prewhitening.type == PrewhiteningTypeEnum.arma
+        assert restored.prewhitening.fit_domain == "full run"
+        assert restored.prewhitening.ar_coefficients == [0.8, -0.2]
+        assert restored.prewhitening.ma_coefficients == []
 
 
 # =====================================================

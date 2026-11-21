@@ -69,17 +69,51 @@
                 ""
             ]
         },
-        "prewhitening_type": {
-            "default": "'first difference'",
-            "description": "Prewhitening method to be applied",
-            "title": "prewhitening_type",
-            "examples": "first difference",
-            "type": "string",
-            "alias": null,
-            "units": null,
-            "enum": [
-                "first difference",
-                "other"
+        "prewhitening": {
+            "description": "Prewhitening configuration",
+            "title": "prewhitening",
+            "type": "object",
+            "properties": {
+                "type": {
+                    "default": "'first difference'",
+                    "description": "Prewhitening method to be applied",
+                    "title": "type",
+                    "examples": "first difference",
+                    "type": "string",
+                    "alias": null,
+                    "units": null,
+                    "enum": [
+                        "",
+                        "first difference",
+                        "ARMA",
+                        "other"
+                    ]
+                },
+                "ar_order": {
+                    "default": 0,
+                    "description": "Order of the autoregressive prewhitening model",
+                    "title": "ar_order",
+                    "examples": 3,
+                    "type": "integer",
+                    "minimum": 0,
+                    "alias": null,
+                    "units": null
+                },
+                "ma_order": {
+                    "default": 0,
+                    "description": "Order of the moving-average prewhitening model",
+                    "title": "ma_order",
+                    "examples": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "alias": null,
+                    "units": null
+                }
+            },
+            "required": [
+                "type",
+                "ar_order",
+                "ma_order"
             ]
         },
         "recoloring": {
@@ -98,7 +132,7 @@
         "min_num_stft_windows",
         "per_window_detrend_type",
         "pre_fft_detrend_type",
-        "prewhitening_type",
+        "prewhitening",
         "recoloring"
     ],
     "description": "short_time_fourier_transform"

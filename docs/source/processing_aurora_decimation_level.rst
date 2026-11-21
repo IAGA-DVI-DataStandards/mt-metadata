@@ -656,7 +656,7 @@ DecimationLevel
        |                                              |                                               |                |
        +----------------------------------------------+-----------------------------------------------+----------------+
 
-:navy:`stft.prewhitening_type`
+:navy:`stft.prewhitening.type`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
@@ -666,7 +666,7 @@ DecimationLevel
        :widths: 45 45 15
 
        +----------------------------------------------+-----------------------------------------------+----------------+
-       | **stft.prewhitening_type**                   | **Description**                               | **Example**    |
+       | **stft.prewhitening.type**                   | **Description**                               | **Example**    |
        +==============================================+===============================================+================+
        | **Required**: :red:`True`                    | Prewhitening method to be applied             | first          |
        |                                              |                                               | difference     |
@@ -680,6 +680,9 @@ DecimationLevel
        |                                              |                                               |                |
        |                                              |                                               |                |
        +----------------------------------------------+-----------------------------------------------+----------------+
+
+The ARMA orders are configured with ``stft.prewhitening.ar_order`` and
+``stft.prewhitening.ma_order``.
 
 :navy:`stft.recoloring`
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -131,7 +131,7 @@ ShortTimeFourierTransform
        |                                              |                                               |                |
        +----------------------------------------------+-----------------------------------------------+----------------+
 
-:navy:`prewhitening_type`
+:navy:`prewhitening.type`
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container::
@@ -141,7 +141,7 @@ ShortTimeFourierTransform
        :widths: 45 45 15
 
        +----------------------------------------------+-----------------------------------------------+----------------+
-       | **prewhitening_type**                        | **Description**                               | **Example**    |
+       | **prewhitening.type**                        | **Description**                               | **Example**    |
        +==============================================+===============================================+================+
        | **Required**: :red:`True`                    | Prewhitening method to be applied             | first          |
        |                                              |                                               | difference     |
@@ -155,6 +155,9 @@ ShortTimeFourierTransform
        |                                              |                                               |                |
        |                                              |                                               |                |
        +----------------------------------------------+-----------------------------------------------+----------------+
+
+The ARMA orders are configured with ``prewhitening.ar_order`` and
+``prewhitening.ma_order``.
 
 :navy:`recoloring`
 ~~~~~~~~~~~~~~~~~~
