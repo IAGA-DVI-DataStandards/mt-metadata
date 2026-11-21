@@ -32,7 +32,6 @@ from mt_metadata.processing.fourier_coefficients.decimation import (
     Decimation as FCDecimation,
 )
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
