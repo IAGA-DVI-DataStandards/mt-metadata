@@ -461,8 +461,11 @@ class TestSTFTRepresentation:
         assert stft_dict["harmonic_indices"] == 10
         assert stft_dict["method"] == "wavelet"
         assert stft_dict["min_num_stft_windows"] == 8
-        assert stft_dict["prewhitening_ar_order"] == 3
-        assert stft_dict["prewhitening_ma_order"] == 0
+        assert stft_dict["prewhitening"]["ar_order"] == 3
+        assert stft_dict["prewhitening"]["ma_order"] == 0
+        assert "prewhitening_type" not in stft_dict
+        assert "prewhitening_ar_order" not in stft_dict
+        assert "prewhitening_ma_order" not in stft_dict
         assert stft_dict["recoloring"] is False
 
     def test_model_dump_json(self, custom_stft):
@@ -528,9 +531,6 @@ class TestSTFTEdgeCases:
             "per_window_detrend_type",
             "pre_fft_detrend_type",
             "prewhitening",
-            "prewhitening_type",
-            "prewhitening_ar_order",
-            "prewhitening_ma_order",
             "recoloring",
             "window",
         }

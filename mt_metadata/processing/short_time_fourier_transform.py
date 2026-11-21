@@ -3,7 +3,7 @@
 # =====================================================
 from typing import Annotated, Union
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
 from mt_metadata.base import MetadataBase
 from mt_metadata.common.enumerations import StrEnumerationBase
@@ -115,50 +115,6 @@ class ShortTimeFourierTransform(MetadataBase):
         ),
     ]
 
-    prewhitening_type: Annotated[
-        PrewhiteningTypeEnum,
-        Field(
-            default=PrewhiteningTypeEnum.first_difference,
-            description="Prewhitening method to be applied",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": ["first difference"],
-            },
-        ),
-    ]
-
-    prewhitening_ar_order: Annotated[
-        int,
-        Field(
-            default=0,
-            ge=0,
-            description="Order of the autoregressive prewhitening model",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": [3],
-            },
-        ),
-    ]
-
-    prewhitening_ma_order: Annotated[
-        int,
-        Field(
-            default=0,
-            ge=0,
-            description="Order of the moving-average prewhitening model",
-            alias=None,
-            json_schema_extra={
-                "units": None,
-                "required": True,
-                "examples": [0],
-            },
-        ),
-    ]
-
     recoloring: Annotated[
         bool,
         Field(
@@ -195,65 +151,49 @@ class ShortTimeFourierTransform(MetadataBase):
             return values
 
         values = values.copy()
+        legacy_values = {
+            "type": values.pop("prewhitening_type", None),
+            "ar_order": values.pop("prewhitening_ar_order", None),
+            "ma_order": values.pop("prewhitening_ma_order", None),
+        }
+        legacy_values = {
+            key: value for key, value in legacy_values.items() if value is not None
+        }
         prewhitening = values.get("prewhitening")
-        if prewhitening is None:
-            values["prewhitening"] = {
-                "type": values.get(
-                    "prewhitening_type",
-                    PrewhiteningTypeEnum.first_difference,
-                ),
-                "ar_order": values.get("prewhitening_ar_order", 0),
-                "ma_order": values.get("prewhitening_ma_order", 0),
-            }
-        else:
-            if isinstance(prewhitening, dict):
-                get_value = prewhitening.get
+        if legacy_values:
+            if prewhitening is None:
+                prewhitening = {}
+            elif isinstance(prewhitening, Prewhitening):
+                prewhitening = prewhitening.model_dump()
             else:
-                get_value = lambda name: getattr(prewhitening, name)
-            values.setdefault(
-                "prewhitening_type",
-                get_value("type"),
-            )
-            values.setdefault(
-                "prewhitening_ar_order",
-                get_value("ar_order"),
-            )
-            values.setdefault(
-                "prewhitening_ma_order",
-                get_value("ma_order"),
-            )
+                prewhitening = prewhitening.copy()
+            prewhitening.update(legacy_values)
+            values["prewhitening"] = prewhitening
         return values
 
-    @field_validator("prewhitening_type", mode="after")
-    @classmethod
-    def sync_prewhitening_type(cls, value, info):
-        """Keep the composed metadata synchronized with the legacy field."""
-        if "prewhitening" in info.data:
-            info.data["prewhitening"].type = value
-        return value
+    @property
+    def prewhitening_type(self) -> PrewhiteningTypeEnum:
+        """Legacy compatibility property; use ``prewhitening.type`` instead."""
+        return self.prewhitening.type
 
-    @field_validator("prewhitening_ar_order", "prewhitening_ma_order", mode="after")
-    @classmethod
-    def sync_prewhitening_orders(cls, value, info):
-        """Keep the composed metadata synchronized with legacy order fields."""
-        if "prewhitening" in info.data:
-            field_name = info.field_name.removeprefix("prewhitening_")
-            setattr(info.data["prewhitening"], field_name, value)
-        return value
+    @prewhitening_type.setter
+    def prewhitening_type(self, value: PrewhiteningTypeEnum) -> None:
+        self.prewhitening.type = value
 
-    @model_validator(mode="after")
-    def sync_legacy_prewhitening_fields(self):
-        """Expose composed metadata through the legacy flat STFT fields."""
-        object.__setattr__(self, "prewhitening_type", self.prewhitening.type)
-        object.__setattr__(self, "prewhitening_ar_order", self.prewhitening.ar_order)
-        object.__setattr__(self, "prewhitening_ma_order", self.prewhitening.ma_order)
-        return self
+    @property
+    def prewhitening_ar_order(self) -> int:
+        """Legacy compatibility property; use ``prewhitening.ar_order`` instead."""
+        return self.prewhitening.ar_order
 
+    @prewhitening_ar_order.setter
+    def prewhitening_ar_order(self, value: int) -> None:
+        self.prewhitening.ar_order = value
 
-# what is the point of this main function?
-# def main():
-#     stft = ShortTimeFourierTransform()
+    @property
+    def prewhitening_ma_order(self) -> int:
+        """Legacy compatibility property; use ``prewhitening.ma_order`` instead."""
+        return self.prewhitening.ma_order
 
-
-# if __name__ == "__main__":
-#     main()
+    @prewhitening_ma_order.setter
+    def prewhitening_ma_order(self, value: int) -> None:
+        self.prewhitening.ma_order = value
